@@ -20,8 +20,10 @@ GitHub Pages serves a **static demo build** of the terminal. Pages cannot run Py
 the demo ships an in-browser implementation of the same API contracts — including a real double-entry
 ledger — persisted to `localStorage`.
 
-- Demo: `https://muhammadhaiderabbas.github.io/LmArenaAIBotTrading/`
-- Sign in with the pre-filled demo account, or register your own (you get a funded paper account)
+- **Demo:** <https://muhammadhaiderabbas.github.io/LmArenaAIBotTrading/>
+- Sign in with `demo@aurex.ai` / `Demo!Aurex2026`, or register your own (you get a funded paper account)
+- The bundle is published from the `gh-pages` branch; see
+  [`docs/deployment/HOSTING.md`](docs/deployment/HOSTING.md) for how it is built and redeployed
 
 The demo is a product walkthrough, **not** a security boundary and holds no real value.
 
