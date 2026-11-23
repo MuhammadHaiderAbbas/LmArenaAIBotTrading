@@ -30,7 +30,7 @@ import re
 import httpx
 
 from app.integrations.research.rss import HEADERS
-from app.services.research import extraction
+from app.services.research import extraction, pdf
 
 # List/index pages are not articles. An earlier version accepted a Bank of England
 # news index as an article body, which put navigation text into the evidence pool
@@ -79,10 +79,14 @@ def fetch_body(url: str, *, timeout: float = 20.0, client=None, expect_title: st
         raise BodyFetchError(url, f"HTTP {response.status_code}")
 
     content_type = response.headers.get("content-type", "")
-    if "pdf" in content_type or url.lower().endswith(".pdf"):
-        # PDF bodies are a Phase 5 concern; saying so is better than indexing
-        # binary noise.
-        raise BodyFetchError(url, "PDF body extraction is not implemented")
+    if pdf.is_pdf(url, content_type):
+        try:
+            text = pdf.extract_text(response.content)
+        except pdf.PdfExtractionError as exc:
+            raise BodyFetchError(url, f"PDF: {exc.reason}") from exc
+        if looks_like_listing(text):
+            raise BodyFetchError(url, "PDF looks like an index/listing, not an article")
+        return text
 
     text = extract_main_text(response.text)
     if len(text.split()) < 40:

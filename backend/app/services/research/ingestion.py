@@ -36,7 +36,7 @@ from app.models.research import (
     ResearchDocument,
     SourceRecord,
 )
-from app.services.research import entities, extraction, vector
+from app.services.research import bodies, entities, extraction, pdf, vector
 
 logger = logging.getLogger("aurex.research")
 
@@ -103,6 +103,22 @@ def ingest_source(
 
     for item in result.items:
         seen += 1
+
+        # A PDF's summary is a stub; the document itself is the evidence. Fetch it
+        # once here when the licence permits storage, so the text can be indexed.
+        # When storage is not permitted the body is fetched at analysis time
+        # instead and never written down.
+        pdf_failure = ""
+        if source.storage_permitted and pdf.is_pdf(item.url, ""):
+            if not item.content:
+                try:
+                    item.content = bodies.fetch_body(item.url, expect_title=item.title)
+                    run.pdf_extracted = (run.pdf_extracted or 0) + 1
+                except Exception as exc:  # noqa: BLE001 - recorded, not swallowed
+                    pdf_failure = str(exc)
+                    run.pdf_failures = (run.pdf_failures or 0) + 1
+                    logger.info("PDF body unavailable for %s: %s", item.url, exc)
+
         sanitised = extraction.sanitise(item.content or item.summary or item.title)
         body = sanitised.text or item.title
 
@@ -111,6 +127,14 @@ def ingest_source(
             # "Close dialog" is not a headline and must never become a document.
             rejected += 1
             continue
+
+        if pdf_failure and not item.content:
+            # The link is still worth keeping: a reader can open the PDF, and the
+            # run records that the text could not be extracted. Silently storing
+            # the stub as if it were the document would be the dishonest option.
+            persisted_note = f" [PDF text unavailable: {pdf_failure}]"
+        else:
+            persisted_note = ""
 
         if len(body.strip()) < 20:
             # A headline with no body cannot support a claim; storing it would
@@ -142,7 +166,7 @@ def ingest_source(
             url=item.url[:1000],
             canonical_url=item.url[:1000],
             title=_clip(item.title, 600),
-            summary=_clip(item.summary or body[:500], 4000),
+            summary=_clip((item.summary or body[:500]) + persisted_note, 4000),
             published_at=item.published_at,
             retrieved_at=datetime.now(UTC),
             content_stored=store_body,

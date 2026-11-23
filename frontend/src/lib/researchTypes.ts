@@ -42,6 +42,8 @@ export interface ResearchDocument {
   status: string;
   content_stored: boolean;
   word_count: number;
+  /** Body is fetched on demand for analysis and never persisted (licence terms). */
+  body_available_on_demand?: boolean;
   prompt_injection_flags: number;
   injection_detail: string;
   untrusted: boolean;

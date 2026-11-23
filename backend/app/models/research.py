@@ -264,6 +264,10 @@ class IngestRun(Base, TimestampMixin):
     documents_new: Mapped[int] = mapped_column(Integer, default=0)
     duplicates: Mapped[int] = mapped_column(Integer, default=0)
     rejected: Mapped[int] = mapped_column(Integer, default=0)
+    # PDFs are counted separately: a feed can look healthy while every policy
+    # document in it failed to extract, and that is worth seeing at a glance.
+    pdf_extracted: Mapped[int] = mapped_column(Integer, default=0)
+    pdf_failures: Mapped[int] = mapped_column(Integer, default=0)
     duration_ms: Mapped[int] = mapped_column(Integer, default=0)
     error: Mapped[str] = mapped_column(Text, default="")
     started_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)

@@ -209,16 +209,43 @@ without saying so would be exactly the failure mode this phase exists to prevent
 - **No strategy consumption of reports.** Reports are `draft` and are not wired
   to any trading logic. That is Phase 5/6 work, and it needs a validation
   workflow first.
-- **No PDF table extraction.** ECB press releases that are PDFs are linked, not
-  parsed.
+- **No PDF table extraction.** PDF *text* is extracted (see §8a), but tables
+  inside PDFs are flattened to text rather than parsed into columns.
 - **No authenticated-paywall sources.** Only material whose terms permit this
   use.
 
 ---
 
+## 8a. PDF sources
+
+Several central banks publish policy documents as PDFs — ECB speeches and many
+Fed statistical releases among them. Ignoring them means the research tool goes
+quiet exactly when a committee publishes a full document.
+
+`services/research/pdf.py` extracts the text layer in memory with `pypdf`:
+
+- Page numbers and running headers are dropped; wrapped lines are reflowed into
+  paragraphs, because PDF text arrives one visual row per line and that shape
+  defeats both the chunker and the quote picker.
+- A cap of 40 pages guards the request budget, and when it bites the output says
+  so — a reader must not think they have the whole document.
+- A scanned PDF with no text layer raises `PdfExtractionError`, and ingestion
+  records `pdf_failures` plus a note on the document row. Returning an empty
+  string would look like a successful read of an empty document.
+- `research_ingest_runs` carries `pdf_extracted` / `pdf_failures`, so a feed that
+  looks healthy while every document in it failed is visible at a glance.
+
+Live check: an ECB speech PDF extracted to 3,065 words.
+
+For **link-only** publishers the PDF is not stored either — the body is fetched
+at analysis time and never written down, exactly like HTML. Because
+`word_count` then describes what is *in the database*, the API adds
+`body_available_on_demand` and the UI shows "analysed in memory" rather than the
+misleading "8 words" next to a 3,000-word speech.
+
 ## 9. Tests
 
-51 Phase 4 backend tests + 25 frontend tests (137 backend, 57 frontend total):
+63 Phase 4 backend tests + 25 frontend tests (149 backend, 57 frontend total):
 
 - `tests/test_research.py` — feed parsing incl. Atom and hostile DOCTYPE,
   injection detection and false positives, chunk offsets and word boundaries,
@@ -228,6 +255,10 @@ without saying so would be exactly the failure mode this phase exists to prevent
   parsing, vector determinism, registry idempotency and licence completeness.
 - `tests/test_research_api.py` — auth and staff gating, ingest, search, report
   creation, rate limiting, 404s, sanitiser inspection.
+- `tests/test_research_pdf.py` — text extraction, page-number removal, reflow,
+  page cap disclosure, empty/non-PDF/scanned rejection, PDF ingest for a
+  storage-permitted source reaching the index, and a failed PDF fetch being
+  counted and disclosed on the document row.
 - `src/lib/demo/researchEngine.test.ts` — corpus labelling, licence invariants,
   retrieval behaviour, claim verification symmetry.
 - `src/pages/Research.test.tsx` — the screen renders, runs research and shows

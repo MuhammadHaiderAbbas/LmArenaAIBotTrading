@@ -61,6 +61,7 @@ def _document_read(db: Session, document: ResearchDocument, source: SourceRecord
         )
         or 0
     )
+    data.body_available_on_demand = bool(not document.content_stored and document.url)
     return data
 
 

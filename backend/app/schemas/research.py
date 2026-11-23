@@ -53,6 +53,11 @@ class DocumentRead(BaseModel):
     status: DocumentStatus
     content_stored: bool
     word_count: int
+    # A PDF from a link-only publisher is analysed in memory, never stored, so
+    # `word_count` (which describes what is in the database) is tiny while the
+    # document itself is long. Saying so stops the UI implying a 3,000-word
+    # speech is an eight-word stub.
+    body_available_on_demand: bool = False
     prompt_injection_flags: int
     injection_detail: str
     untrusted: bool

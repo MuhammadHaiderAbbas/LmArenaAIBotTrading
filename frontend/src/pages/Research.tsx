@@ -478,7 +478,13 @@ export function Research() {
                     <span aria-hidden>·</span>
                     <span>{formatDate(doc.published_at)}</span>
                     <span aria-hidden>·</span>
-                    <span className="font-mono">{doc.word_count} words</span>
+                    <span className="font-mono">
+                      {doc.content_stored
+                        ? `${doc.word_count} words indexed`
+                        : doc.body_available_on_demand
+                          ? "analysed in memory"
+                          : `${doc.word_count} words`}
+                    </span>
                     {doc.prompt_injection_flags > 0 && (
                       <Badge tone="negative">{doc.injection_detail}</Badge>
                     )}
