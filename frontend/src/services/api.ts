@@ -21,7 +21,9 @@ import type {
 } from "../lib/types";
 import { DemoApiError, demoApi } from "../lib/demo/engine";
 import { demoMarketApi } from "../lib/demo/marketEngine";
+import { demoAiApi } from "../lib/demo/aiEngine";
 import { demoResearchApi } from "../lib/demo/researchEngine";
+import type { Agent, AgentRun, AIOverview } from "../lib/aiTypes";
 import type {
   IngestResponse,
   ResearchDocument,
@@ -314,6 +316,59 @@ export const api = {
   async marketProviders(): Promise<ProviderHealth[]> {
     if (IS_DEMO) return wrapDemo(() => demoMarketApi.providers());
     return http<ProviderHealth[]>("/markets/providers");
+  },
+
+  // ------------------------------------------------------------------------- ai
+
+  async aiAgents(): Promise<Agent[]> {
+    if (IS_DEMO) return wrapDemo(() => demoAiApi.agents());
+    return http<Agent[]>("/ai/agents");
+  },
+
+  async aiOverview(): Promise<AIOverview> {
+    if (IS_DEMO) return wrapDemo(() => demoAiApi.overview());
+    return http<AIOverview>("/ai/overview");
+  },
+
+  async aiRuns(symbol?: string): Promise<AgentRun[]> {
+    if (IS_DEMO) return wrapDemo(() => demoAiApi.runs());
+    const query = symbol ? `?symbol=${encodeURIComponent(symbol)}` : "";
+    return http<AgentRun[]>(`/ai/runs${query}`);
+  },
+
+  async aiRun(input: {
+    symbol: string;
+    timeframe?: string;
+    account_id?: string | null;
+    question?: string;
+  }): Promise<AgentRun> {
+    if (IS_DEMO) {
+      return wrapDemo(async () => {
+        const overview = await demoResearchApi.overview();
+        const claims = overview.top_entities
+          .filter((entity) => entity.kind === "metric")
+          .map((entity) => ({
+            text: `${entity.value} is stated in the retrieved evidence.`,
+            verdict: "supported",
+            url: "",
+          }));
+        return demoAiApi.run({
+          symbol: input.symbol,
+          timeframe: input.timeframe,
+          question: input.question,
+          claims,
+        });
+      });
+    }
+    return http<AgentRun>("/ai/run", {
+      method: "POST",
+      body: JSON.stringify({
+        symbol: input.symbol,
+        timeframe: input.timeframe ?? "1d",
+        account_id: input.account_id ?? null,
+        question: input.question ?? "",
+      }),
+    });
   },
 
   // ------------------------------------------------------------------ research

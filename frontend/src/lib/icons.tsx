@@ -40,6 +40,14 @@ export const IconBot = (p: IconProps) => (
   </svg>
 );
 
+export const IconCpu = (p: IconProps) => (
+  <svg {...base(p)} fill="none" stroke="currentColor" strokeWidth={1.7} strokeLinecap="round" strokeLinejoin="round">
+    <rect x="6" y="6" width="12" height="12" rx="2.5" />
+    <rect x="10" y="10" width="4" height="4" rx="1" />
+    <path d="M10 3v3M14 3v3M10 18v3M14 18v3M3 10h3M3 14h3M18 10h3M18 14h3" />
+  </svg>
+);
+
 export const IconFlask = (p: IconProps) => (
   <svg {...base(p)}>
     <path d="M9 3h6M10 3v5.5L5.5 17A2.5 2.5 0 0 0 7.7 21h8.6a2.5 2.5 0 0 0 2.2-4L14 8.5V3" />

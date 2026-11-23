@@ -8,6 +8,7 @@ import { Register } from "./pages/Register";
 import { Overview } from "./pages/Overview";
 import { Markets } from "./pages/Markets";
 import { Trading } from "./pages/Trading";
+import { AIDesk } from "./pages/AIDesk";
 import { Research } from "./pages/Research";
 import { Strategies } from "./pages/Strategies";
 import { Portfolio } from "./pages/Portfolio";
@@ -43,6 +44,7 @@ export function App() {
                 <Route path="/markets" element={<Markets />} />
                 <Route path="/trading" element={<Trading />} />
                 <Route path="/research" element={<Research />} />
+                <Route path="/ai" element={<AIDesk />} />
                 <Route path="/strategies" element={<Strategies />} />
                 <Route path="/portfolio" element={<Portfolio />} />
                 <Route path="/risk" element={<RiskCentre />} />

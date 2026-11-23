@@ -1,6 +1,6 @@
 # AUREX AI — Autonomous Trading & Financial Intelligence Platform
 
-**Version 0.1.0 · Phases 1–4** · paper trading only · no real money · no broker execution
+**Version 0.1.0 · Phases 1–5** · paper trading only · no real money · no broker execution
 
 AUREX AI is a multi-market quantitative trading and financial research platform. It combines
 market-data ingestion, specialist AI research agents, quantitative models, strategy evaluation,
@@ -8,7 +8,7 @@ portfolio simulation, deterministic risk controls and automated order execution 
 goal of *identifying statistically defensible opportunities, explaining its reasoning and declining
 to trade when evidence is insufficient*.
 
-> **This repository currently contains Phases 1–4 (Foundation, Accounts, Market Data, Research AI).**
+> **This repository currently contains Phases 1–5 (Foundation, Accounts, Market Data, Research AI, AI Desk).**
 > There is no live trading, no payment processing, no customer money and no performance claim
 > anywhere in this codebase. Scope boundaries: [`phase-1.md`](docs/architecture/phase-1.md),
 > [`phase-3.md`](docs/architecture/phase-3.md), [`phase-4.md`](docs/architecture/phase-4.md).
@@ -35,13 +35,13 @@ The demo is a product walkthrough, **not** a security boundary and holds no real
 
 ---
 
-## What Phases 1–4 deliver
+## What Phases 1–5 deliver
 
 | Area | Delivered |
 | --- | --- |
 | Architecture | Modular monolith, clearly separated domains, documented boundaries |
 | Backend | FastAPI + Pydantic v2, OpenAPI docs at `/docs`, health checks |
-| Database | PostgreSQL (SQLite for dev/test), 30 tables across 6 domains, Alembic migration |
+| Database | PostgreSQL (SQLite for dev/test), 34 tables across 7 domains, Alembic migration |
 | Financial core | **Double-entry ledger** — every transaction balances to zero, reconciliation records |
 | Auth | Registration, login, JWT access/refresh rotation, session revocation, password policy, rate limiting |
 | RBAC | `admin` / `analyst` / `user`, server-side guards, user isolation on every resource |
@@ -57,7 +57,30 @@ The demo is a product walkthrough, **not** a security boundary and holds no real
 | Verified reports (P4) | Extractive `extractive-v1` builder — every claim cites a passage, failed claims shown not dropped |
 | Safety (P4) | Prompt-injection detection, licence-aware storage, documents always untrusted |
 | Research UI (P4) | Source register with licence and failure state, claim/verdict evidence view, flagged documents |
-| DX | Docker Compose (Postgres + Redis + API + web), seed script, 152 backend + 57 frontend tests, CI |
+| AI agents (P5) | 5 deterministic specialists (technical, regime, news, portfolio, quality); 3 registered as explicitly unbuilt |
+| Orchestrator (P5) | Structured findings with evidence-or-absence, conflict detection, refusal when evidence is thin |
+| AI Desk UI (P5) | Findings with facts/interpretation/uncertainty split, confidence labelled as a rule score, blocked reason shown |
+| DX | Docker Compose (Postgres + Redis + API + web), seed script, 200 backend + 82 frontend tests, CI |
+
+### Explicitly **not** in Phase 5
+
+Real execution, the independent risk controller, position management, backtests,
+streaming feeds, scheduling, and calibrated model confidence.
+
+**No AI proposal in this platform is tradeable, and there is no order path to
+reach.** Every run stores `tradeable: false` with the reason, a test asserts it
+across symbols, and `/api/v1/ai/overview` reports `tradeable_proposals` so a
+regression would show on a dashboard. Phase 9 owns the risk controller that will
+stand between a proposal and any order.
+
+**No language model writes the findings.** All five specialists are deterministic
+rule sets. The output is honest about being shallow instead of dressing shallow
+judgement in fluent prose. Confidence is a documented `rule_score`, never
+presented as a probability — calibration needs outcome data that arrives in
+Phase 6.
+
+A specialist with no data records an `absence` evidence row rather than a neutral
+stance, and the desk returns `refused` when no specialist has usable evidence.
 
 ### Explicitly **not** in Phase 4
 
@@ -240,7 +263,7 @@ limiting for multi-instance deployments, dependency scanning in CI.
 | 02 | Design system, navigation, dashboard, account screens | **Complete** |
 | 03 | Instrument registry, provider adapters, historical data, indicators, quality | **Complete** |
 | 04 | News ingestion, document extraction, RAG, source-linked reports | **Complete** |
-| 05 | Orchestrator, specialist agents, structured outputs | Planned |
+| 05 | Orchestrator, specialist agents, structured outputs | **Complete** |
 | 06 | Feature engineering, training, validation, drift monitoring | Planned |
 | 07 | Event-driven simulator, costs, slippage, out-of-sample evaluation | Planned |
 | 08 | Order lifecycle, simulated fills, positions, accounting | Planned |

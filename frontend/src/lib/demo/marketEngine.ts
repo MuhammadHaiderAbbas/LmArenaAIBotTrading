@@ -355,6 +355,13 @@ function instrumentOf(spec: Spec): Instrument {
   };
 }
 
+/** Candles for a known instrument, or null when the symbol is not registered. */
+export function candlesForSymbol(symbol: string, timeframe: Timeframe, count: number): Candle[] | null {
+  const match = SPECS.find((spec) => spec.symbol.toLowerCase() === symbol.toLowerCase());
+  if (!match) return null;
+  return candlesFor(match, timeframe, count);
+}
+
 function findSpec(symbol: string): Spec {
   const match = SPECS.find((spec) => spec.symbol.toLowerCase() === symbol.toLowerCase());
   if (!match) throw new Error(`Unknown instrument '${symbol}'`);
