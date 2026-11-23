@@ -218,7 +218,7 @@ without saying so would be exactly the failure mode this phase exists to prevent
 
 ## 9. Tests
 
-63 Phase 4 tests (140 backend total, 57 frontend):
+63 Phase 4 tests (137 backend total, 57 frontend):
 
 - `tests/test_research.py` — feed parsing incl. Atom and hostile DOCTYPE,
   injection detection and false positives, chunk offsets and word boundaries,

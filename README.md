@@ -54,7 +54,7 @@ The demo is a product walkthrough, **not** a security boundary and holds no real
 | Verified reports (P4) | Extractive `extractive-v1` builder — every claim cites a passage, failed claims shown not dropped |
 | Safety (P4) | Prompt-injection detection, licence-aware storage, documents always untrusted |
 | Research UI (P4) | Source register with licence and failure state, claim/verdict evidence view, flagged documents |
-| DX | Docker Compose (Postgres + Redis + API + web), seed script, 140 backend + 57 frontend tests, CI |
+| DX | Docker Compose (Postgres + Redis + API + web), seed script, 137 backend + 57 frontend tests, CI |
 
 ### Explicitly **not** in Phase 4
 
