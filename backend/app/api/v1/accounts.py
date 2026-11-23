@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from fastapi import APIRouter, Query, Request, status
+from sqlalchemy import select
 
 from app.api.deps import CurrentUser, DbSession
 from app.core.audit import record_audit
@@ -20,7 +21,6 @@ from app.schemas.account import (
     WithdrawRequest,
 )
 from app.services import account_service, ledger_service
-from sqlalchemy import select
 
 router = APIRouter(tags=["accounts"])
 

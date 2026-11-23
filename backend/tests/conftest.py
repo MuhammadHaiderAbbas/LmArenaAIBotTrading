@@ -22,11 +22,11 @@ os.environ.update(
 
 from fastapi.testclient import TestClient  # noqa: E402
 
+import app.models as _models  # noqa: E402,F401  (registers mappers)
 from app.core.rate_limit import reset_rate_limits  # noqa: E402
 from app.database.session import Base, SessionLocal, engine  # noqa: E402
 from app.main import app  # noqa: E402  (FastAPI instance)
-import app.models as _models  # noqa: E402,F401  (registers mappers)
-from app.models import User, UserRole  # noqa: E402
+from app.models import UserRole  # noqa: E402
 from app.services import auth_service  # noqa: E402
 
 
@@ -56,7 +56,11 @@ def client() -> Generator[TestClient, None, None]:
 
 @pytest.fixture
 def user_factory():
-    def _create(email: str = "trader@aurex.ai", password: str = "Str0ngPass!", role: UserRole = UserRole.USER):
+    def _create(
+        email: str = "trader@aurex.ai",
+        password: str = "Str0ngPass!",  # noqa: S107 - test fixture
+        role: UserRole = UserRole.USER,
+    ):
         db = SessionLocal()
         try:
             user = auth_service.register(
@@ -74,7 +78,10 @@ def user_factory():
 
 @pytest.fixture
 def auth_headers(client: TestClient, user_factory):
-    def _login(email: str = "trader@aurex.ai", password: str = "Str0ngPass!") -> dict[str, str]:
+    def _login(
+        email: str = "trader@aurex.ai",
+        password: str = "Str0ngPass!",  # noqa: S107 - test fixture
+    ) -> dict[str, str]:
         try:
             user_factory(email, password)
         except Exception:

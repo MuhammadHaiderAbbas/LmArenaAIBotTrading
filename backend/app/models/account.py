@@ -50,8 +50,8 @@ class TradingAccount(Base, TimestampMixin):
     base_currency: Mapped[str] = mapped_column(String(3), default="GBP", nullable=False)
     leverage_enabled: Mapped[bool] = mapped_column(default=False, nullable=False)
 
-    user: Mapped["User"] = relationship(back_populates="accounts")
-    ledger_accounts: Mapped[list["LedgerAccount"]] = relationship(
+    user: Mapped[User] = relationship(back_populates="accounts")
+    ledger_accounts: Mapped[list[LedgerAccount]] = relationship(
         back_populates="trading_account", cascade="all, delete-orphan"
     )
 

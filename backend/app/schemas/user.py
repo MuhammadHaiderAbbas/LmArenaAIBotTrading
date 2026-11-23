@@ -65,7 +65,7 @@ class UserRead(UserBase):
     mfa_enabled: bool
     last_login_at: datetime | None
     created_at: datetime
-    preferences: "UserSettingsRead | None" = None
+    preferences: UserSettingsRead | None = None
 
 
 class UserSettingsRead(BaseModel):
@@ -86,7 +86,7 @@ class LoginRequest(BaseModel):
 class TokenPair(BaseModel):
     access_token: str
     refresh_token: str
-    token_type: str = "bearer"
+    token_type: str = "bearer"  # noqa: S105 - token type label, not a secret
     expires_in: int = settings.ACCESS_TOKEN_EXPIRE_MINUTES * 60
 
 

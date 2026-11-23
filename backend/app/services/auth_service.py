@@ -140,8 +140,8 @@ def authenticate(
 def refresh(db: Session, refresh_token: str, request: Request | None = None) -> TokenPair:
     try:
         payload = decode_token(refresh_token, expected_type="refresh")
-    except jwt.PyJWTError:
-        raise DomainError("Invalid or expired refresh token.", status_code=401)
+    except jwt.PyJWTError as exc:
+        raise DomainError("Invalid or expired refresh token.", status_code=401) from exc
 
     session = db.scalar(
         select(UserSession).where(UserSession.token_hash == _hash_refresh(refresh_token))

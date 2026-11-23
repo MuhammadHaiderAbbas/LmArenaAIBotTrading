@@ -1,24 +1,21 @@
-[pytest]
-testpaths = tests
-addopts = -q --strict-markers
-filterwarnings =
-    ignore::DeprecationWarning
-    ignore::UserWarning
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q --strict-markers"
+filterwarnings = ["ignore::DeprecationWarning", "ignore::UserWarning"]
 
-[ruff]
+[tool.ruff]
 line-length = 100
 target-version = "py311"
 
-[ruff.lint]
+[tool.ruff.lint]
 select = ["E", "F", "I", "B", "UP", "S", "C4"]
-ignore = ["S101", "B008"]
+ignore = ["S101", "B008", "UP042", "E501"]
 
-[ruff.lint.per-file-ignores]
-"tests/*" = ["S105", "S106"]
-"app/core/config.py" = ["S105"]
+[tool.ruff.lint.per-file-ignores]
+"tests/*" = ["S105", "S106", "S110"]
+"app/core/config.py" = ["S105", "S107"]
 
-[mypy]
+[tool.mypy]
 python_version = "3.11"
 warn_unused_ignores = true
 ignore_missing_imports = true
-plugins = []

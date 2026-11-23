@@ -12,13 +12,13 @@ import os
 
 from sqlalchemy import select
 
+import app.models  # noqa: F401  registers mappers
 from app.core.config import settings
+from app.core.security import hash_password
 from app.database.session import Base, SessionLocal, engine
 from app.models import Environment, TradingAccount, User, UserRole
 from app.models.identity import UserSettings
-from app.services import account_service, auth_service, ledger_service
-from app.core.security import hash_password
-import app.models  # noqa: F401  registers mappers
+from app.services import account_service, ledger_service
 
 logging.basicConfig(level=logging.INFO, format="%(levelname)s | %(message)s")
 logger = logging.getLogger("aurex.seed")

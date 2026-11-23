@@ -67,8 +67,8 @@ class LedgerAccount(Base, TimestampMixin):
     )
     currency: Mapped[str] = mapped_column(String(3), nullable=False)
 
-    trading_account: Mapped["TradingAccount"] = relationship(back_populates="ledger_accounts")
-    entries: Mapped[list["LedgerEntry"]] = relationship(back_populates="ledger_account")
+    trading_account: Mapped[TradingAccount] = relationship(back_populates="ledger_accounts")
+    entries: Mapped[list[LedgerEntry]] = relationship(back_populates="ledger_account")
 
 
 class LedgerTransaction(Base):
@@ -88,7 +88,7 @@ class LedgerTransaction(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
     created_by: Mapped[str | None] = mapped_column(String(36), nullable=True)
 
-    entries: Mapped[list["LedgerEntry"]] = relationship(
+    entries: Mapped[list[LedgerEntry]] = relationship(
         back_populates="transaction", cascade="all, delete-orphan", lazy="selectin"
     )
 

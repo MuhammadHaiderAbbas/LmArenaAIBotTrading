@@ -41,13 +41,13 @@ class User(Base, TimestampMixin):
     mfa_enabled: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
     last_login_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
 
-    accounts: Mapped[list["TradingAccount"]] = relationship(
+    accounts: Mapped[list[TradingAccount]] = relationship(
         back_populates="user", cascade="all, delete-orphan"
     )
-    sessions: Mapped[list["UserSession"]] = relationship(
+    sessions: Mapped[list[UserSession]] = relationship(
         back_populates="user", cascade="all, delete-orphan"
     )
-    preferences: Mapped["UserSettings | None"] = relationship(
+    preferences: Mapped[UserSettings | None] = relationship(
         back_populates="user", cascade="all, delete-orphan", uselist=False
     )
 
