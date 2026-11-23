@@ -31,7 +31,7 @@ The demo is a product walkthrough, **not** a security boundary and holds no real
 
 ---
 
-## What Phase 1 delivers
+## What Phases 1–3 deliver
 
 | Area | Delivered |
 | --- | --- |
@@ -44,12 +44,33 @@ The demo is a product walkthrough, **not** a security boundary and holds no real
 | Audit | Append-only audit trail of all sensitive actions, admin-visible |
 | Accounts | Paper trading accounts, virtual opening balance, virtual deposit/withdraw |
 | Frontend | React 18 + TypeScript + Vite + Tailwind, 13 screens, design system, responsive shell |
-| DX | Docker Compose (Postgres + Redis + API + web), seed script, 35 backend tests, CI |
+| Market data (P3) | 4 provider adapters with ordered fallback, 18-instrument registry, candles, quotes, sessions |
+| Indicators (P3) | SMA, EMA, RSI, ATR, MACD, Bollinger, volatility — verified against published references |
+| Data quality (P3) | Gaps, duplicates, outliers, staleness and provider errors recorded with severity |
+| Markets UI (P3) | Screener, candlestick chart with overlays, indicator readout, provider health |
+| DX | Docker Compose (Postgres + Redis + API + web), seed script, 118 tests, CI |
 
-### Explicitly **not** in Phase 1
+### Explicitly **not** in Phase 3
 
-Real deposits, withdrawals, customer funds, KYC, broker connections, live execution, market-data
-feeds, AI agents, models, backtests. Each has a phase and a gate (see roadmap below).
+Real deposits, withdrawals, customer funds, KYC, broker connections, live execution, AI agents,
+models, backtests, streaming feeds. Each has a phase and a gate (see roadmap below).
+
+**No instrument is tradable in Phase 3.** The registry exists so data can be analysed, not so
+orders can be placed. `is_tradable` is `false` on every instrument and a test enforces it.
+
+### Market data sources
+
+| Provider | Asset classes | Timeframes | Key |
+| --- | --- | --- | --- |
+| Kraken | crypto | 1m → 1w | none |
+| Yahoo Finance | equity, ETF, FX | 1h → 1w | none |
+| Twelve Data | equity, ETF, FX | 1h → 1w | `TWELVEDATA_API_KEY` (`demo` = limited symbols) |
+| Frankfurter (ECB) | FX | D1 only | none |
+
+Yahoo rate-limits aggressively by IP and is never treated as a single source. Provider failure
+is expected: ingestion walks an ordered candidate list, records a quality event, and only fails
+the sync when every candidate is exhausted. Full detail in
+[`docs/architecture/phase-3.md`](docs/architecture/phase-3.md).
 
 ---
 
@@ -199,7 +220,7 @@ limiting for multi-instance deployments, dependency scanning in CI.
 | --- | --- | --- |
 | 01 | Repository, Docker, Postgres, auth, migrations, API structure | **Complete** |
 | 02 | Design system, navigation, dashboard, account screens | **Complete** |
-| 03 | Instrument registry, provider adapters, historical data, streaming | Planned |
+| 03 | Instrument registry, provider adapters, historical data, indicators, quality | **Complete** |
 | 04 | News ingestion, document extraction, RAG, source-linked reports | Planned |
 | 05 | Orchestrator, specialist agents, structured outputs | Planned |
 | 06 | Feature engineering, training, validation, drift monitoring | Planned |
