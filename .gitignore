@@ -40,3 +40,4 @@ mlruns/
 Thumbs.db
 .idea/
 .vscode/
+*.tsbuildinfo
