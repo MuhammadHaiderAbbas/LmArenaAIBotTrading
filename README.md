@@ -8,12 +8,13 @@ portfolio simulation, deterministic risk controls and automated order execution 
 goal of *identifying statistically defensible opportunities, explaining its reasoning and declining
 to trade when evidence is insufficient*.
 
-> **This repository currently contains Phases 1–7 (Foundation, Accounts, Market Data, Research AI, AI Desk, Model Engineering, Backtesting).**
-> There is no live trading, no payment processing, no customer money and no performance claim
-> anywhere in this codebase. Scope boundaries: [`phase-1.md`](docs/architecture/phase-1.md),
+> **This repository currently contains Phases 1–8 (Foundation, Accounts, Market Data, Research AI, AI Desk, Model Engineering, Backtesting, Paper Execution).**
+> There is no live trading, no broker connection, no payment processing, no customer money and no
+> performance claim anywhere in this codebase. Scope boundaries: [`phase-1.md`](docs/architecture/phase-1.md),
 > [`phase-2.md`](docs/architecture/phase-2.md), [`phase-3.md`](docs/architecture/phase-3.md),
 > [`phase-4.md`](docs/architecture/phase-4.md), [`phase-5.md`](docs/architecture/phase-5.md),
-> [`phase-6.md`](docs/architecture/phase-6.md), [`phase-7.md`](docs/architecture/phase-7.md).
+> [`phase-6.md`](docs/architecture/phase-6.md), [`phase-7.md`](docs/architecture/phase-7.md),
+> [`phase-8.md`](docs/architecture/phase-8.md).
 
 ---
 
@@ -62,7 +63,7 @@ The demo is a product walkthrough, **not** a security boundary and holds no real
 | AI agents (P5) | 6 deterministic specialists (technical, regime, news, portfolio, quality, quantitative); 2 registered as explicitly unbuilt |
 | Orchestrator (P5) | Structured findings with evidence-or-absence, conflict detection, refusal when evidence is thin |
 | AI Desk UI (P5) | Findings with facts/interpretation/uncertainty split, confidence labelled as a rule score, blocked reason shown |
-| DX | Docker Compose (Postgres + Redis + API + web), seed script, 278 backend + 133 frontend tests; CI workflow in `docs/deployment/CI_WORKFLOWS.md` |
+| DX | Docker Compose (Postgres + Redis + API + web), seed script, 318 backend + 156 frontend tests; CI workflow in `docs/deployment/CI_WORKFLOWS.md` |
 
 | Model engineering (P6) | 15 leakage-tested features, forward-only time splits, numpy logistic training, 4-fold walk-forward |
 | Evaluation (P6) | Per-slice metrics with `is_out_of_sample`, majority-class baseline, edge over baseline, Brier, calibration slope and reliability bins |
@@ -73,12 +74,17 @@ The demo is a product walkthrough, **not** a security boundary and holds no real
 | Strategy gate (P7) | ≥20 trades, net ≥ 0, edge over buy-and-hold ≥ 2%, drawdown better than −25%, Sharpe ≥ 0.30 |
 | Strategy control (P7) | Backtests can only move a strategy to `testing`; validation is staff-only and needs a passing run |
 | Drift monitoring (P6) | Standardised feature shift against the stored training reference; advisory text only, never an automatic action |
+| Paper execution (P8) | Deterministic validation (freshness, cash, position, no shorts), simulated venue with 15% participation cap and up to 4 degrading bites |
+| Fills & accounting (P8) | Every fill stores reference price, measured slippage and commission; each posts a balanced double-entry transaction |
+| Positions (P8) | Long-only book marked to the latest close; reconciled against `INVESTMENT` and `REALISED_PNL` over open *and* closed positions |
+| Execution UI (P8) | Equity, unrealised/realised P&L, order history with rejection reasons, and what the venue is not |
 
-### Explicitly **not** in Phase 7
+### Explicitly **not** in Phase 8
 
-Real execution, the independent risk controller, position management, live-data paper
-trading, parameter optimisation, streaming feeds, scheduling, deep-learning families,
-and any probability→stance conversion.
+Real execution, any broker adapter, the independent risk controller (Phase 9), the
+autonomous loop, risk limits, stop-loss enforcement, short selling, leverage,
+parameter optimisation, streaming feeds, deep-learning families, and any
+probability→stance conversion.
 
 **No AI proposal in this platform is tradeable, and there is no order path to
 reach.** Every run stores `tradeable: false` with the reason, a test asserts it

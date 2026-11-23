@@ -156,8 +156,31 @@ completed result carries `baseline_return` (buy-and-hold, same window, same cost
 and `edge_over_baseline`. Running a backtest never sets `status: validated` and never
 sets `live_eligible`.
 
+## Paper execution (Phase 8)
+
+| Method | Path | Auth | Purpose |
+| --- | --- | --- | --- |
+| POST | `/execution/orders` | bearer | Submit a proposal; validated before it can reach the venue |
+| GET | `/execution/orders` | bearer | Recent orders, filterable by status |
+| GET | `/execution/orders/{id}` | bearer | One order with its fills and lifecycle events |
+| POST | `/execution/orders/{id}/cancel` | bearer | Cancel a resting order |
+| GET | `/execution/positions` | bearer | Open or closed positions, marked to the latest close |
+| GET | `/execution/positions/{id}` | bearer | One position with unrealised percentage |
+| GET | `/execution/overview` | bearer | Equity, cash, costs, rejection rate, reconciliation report |
+| POST | `/execution/strategy-orders` | bearer | Submit a **validated** strategy's proposal (refused otherwise) |
+
+Submission returns `201` whether the order is `filled` or `rejected`: a refusal is a
+result, and the reason is in `reject_reason` together with the check trace in the
+order's events. Order submission is rate-limited to 20/minute (10/minute for strategy
+orders). Every route is scoped to the caller's own account; another user's order id
+returns `404`, never its contents.
+
+Note the path: execution lives under `/execution`, not `/trading` or `/orders`.
+
 ## Reserved namespaces (implemented in later phases)
 
 `/signals`, `/trading`, `/orders`, `/positions`, `/portfolio`, `/risk`, `/wallet`,
-`/transactions`, `/analytics`, `/notifications`. These routes are intentionally absent so no client
-can assume they exist.
+`/transactions`, `/analytics`, `/notifications`, `/scheduler`. These routes are
+intentionally absent so no client can assume they exist. Note that `/positions` and
+`/orders` remain reserved at the **top level** even though Phase 8 serves positions and
+orders beneath `/execution`.

@@ -22,6 +22,12 @@ import type {
 import { DemoApiError, demoApi } from "../lib/demo/engine";
 import { demoMarketApi } from "../lib/demo/marketEngine";
 import { demoAiApi } from "../lib/demo/aiEngine";
+import * as demoExecution from "../lib/demo/executionEngine";
+import type {
+  ExecutionOverview,
+  Order,
+  Position,
+} from "../lib/executionTypes";
 import * as demoModelEngine from "../lib/demo/modelEngine";
 import type { DriftEvent as DemoDriftEvent, ModelOverview as DemoModelOverview, ModelVersion as DemoModelVersion } from "../lib/demo/modelEngine";
 import { demoResearchApi } from "../lib/demo/researchEngine";
@@ -321,6 +327,55 @@ export const api = {
   },
 
   // ------------------------------------------------------------------------- ai
+
+  async executionOverview(): Promise<ExecutionOverview> {
+    if (IS_DEMO) return demoExecution.overview();
+    return http<ExecutionOverview>("/execution/overview");
+  },
+
+  async executionPositions(status: "open" | "closed" | "all" = "open"): Promise<Position[]> {
+    if (IS_DEMO) return demoExecution.positions(status);
+    return http<Position[]>(`/execution/positions?status=${status}`);
+  },
+
+  async executionOrders(limit = 25): Promise<Order[]> {
+    if (IS_DEMO) return demoExecution.orders().slice(0, limit);
+    return http<Order[]>(`/execution/orders?limit=${limit}`);
+  },
+
+  async executionPlace(input: {
+    symbol: string;
+    side: "buy" | "sell";
+    quantity: number;
+    order_type?: "market" | "limit";
+    limit_price?: number | null;
+    rationale?: string;
+    client_order_id?: string;
+    execute?: boolean;
+  }): Promise<Order> {
+    if (IS_DEMO) {
+      return demoExecution.placeOrder({
+        symbol: input.symbol,
+        side: input.side,
+        quantity: input.quantity,
+        orderType: input.order_type,
+        limitPrice: input.limit_price ?? null,
+        rationale: input.rationale,
+        clientOrderId: input.client_order_id,
+        execute: input.execute,
+      }).order;
+    }
+    return http<Order>("/execution/orders", { method: "POST", body: JSON.stringify(input) });
+  },
+
+  async executionCancel(orderId: string): Promise<Order> {
+    if (IS_DEMO) {
+      const order = demoExecution.cancelOrder(orderId);
+      if (!order) throw new DemoApiError(404, "Order not found");
+      return order;
+    }
+    return http<Order>(`/execution/orders/${orderId}/cancel`, { method: "POST" });
+  },
 
   async modelOverview(symbol = "GBP/USD"): Promise<DemoModelOverview> {
     if (IS_DEMO) return demoModelEngine.overview(symbol);

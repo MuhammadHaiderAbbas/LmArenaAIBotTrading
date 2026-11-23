@@ -7,7 +7,7 @@ import { Login } from "./pages/Login";
 import { Register } from "./pages/Register";
 import { Overview } from "./pages/Overview";
 import { Markets } from "./pages/Markets";
-import { Trading } from "./pages/Trading";
+import { Execution } from "./pages/Execution";
 import { AIDesk } from "./pages/AIDesk";
 import { Models } from "./pages/Models";
 import { Research } from "./pages/Research";
@@ -43,7 +43,7 @@ export function App() {
               >
                 <Route path="/overview" element={<Overview />} />
                 <Route path="/markets" element={<Markets />} />
-                <Route path="/trading" element={<Trading />} />
+                <Route path="/trading" element={<Execution />} />
                 <Route path="/research" element={<Research />} />
                 <Route path="/ai" element={<AIDesk />} />
                 <Route path="/models" element={<Models />} />

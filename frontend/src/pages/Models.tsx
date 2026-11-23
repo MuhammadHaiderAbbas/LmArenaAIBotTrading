@@ -370,7 +370,7 @@ export function Models() {
               ["No automatic promotion", "A candidate can never promote itself, whatever its metrics."],
               ["No production rule changes", "Models inform commentary; the trading rules are deterministic and stay in code."],
               ["No deep learning yet", "LSTM, transformer and RL families are registered but unimplemented until a baseline edge exists."],
-              ["No live economics", "Costs, slippage and position sizing are Phase 7 and 8 concerns."],
+              ["No live economics", "Costs, slippage and position sizing are modelled in Phases 7 and 8; nothing here trades."],
             ].map(([title, detail]) => (
               <li key={title} className="rounded-md border border-line bg-surface-sunken px-3 py-2">
                 <p className="font-medium text-ink">{title}</p>

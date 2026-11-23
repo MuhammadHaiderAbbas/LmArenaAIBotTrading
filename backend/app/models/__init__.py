@@ -18,6 +18,18 @@ from app.models.ai import (
     RunTrigger,
     Stance,
 )
+from app.models.execution import (
+    ExecutionEvent,
+    ExecutionEventType,
+    Order,
+    OrderFill,
+    OrderSide,
+    OrderStatus,
+    OrderType,
+    Position,
+    PositionStatus,
+    TimeInForce,
+)
 from app.models.identity import User, UserRole, UserSession, UserSettings
 from app.models.ledger import (
     LedgerAccount,
@@ -95,6 +107,16 @@ from app.models.strategy import (
 )
 
 __all__ = [
+    "ExecutionEvent",
+    "ExecutionEventType",
+    "Order",
+    "OrderFill",
+    "OrderSide",
+    "OrderStatus",
+    "OrderType",
+    "Position",
+    "PositionStatus",
+    "TimeInForce",
     "Backtest",
     "BacktestEquityPoint",
     "BacktestMetrics",

@@ -548,7 +548,7 @@ export function quantitativeFinding(symbol: string): Finding {
       `Edge over majority-class baseline ${edge === null ? "—" : `${edge >= 0 ? "+" : ""}${edge.toFixed(3)}`}`,
     ].join("\n"),
     interpretation:
-      "This is a model output, not a recommendation. No stance is taken from it: the strategy layer arrives in Phase 7.",
+      "This is a model output, not a recommendation. No stance is taken from it: a strategy must pass the backtest gate before any proposal reaches the paper venue.",
     uncertainties: caveats.join(" "),
     limitations:
       "Trained on a single instrument's price history; it knows nothing about news, positioning or macro.",
