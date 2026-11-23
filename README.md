@@ -1,6 +1,6 @@
 # AUREX AI — Autonomous Trading & Financial Intelligence Platform
 
-**Version 0.1.0 · Phases 1–6** · paper trading only · no real money · no broker execution
+**Version 0.1.0 · Phases 1–7** · paper trading only · no real money · no broker execution
 
 AUREX AI is a multi-market quantitative trading and financial research platform. It combines
 market-data ingestion, specialist AI research agents, quantitative models, strategy evaluation,
@@ -8,12 +8,12 @@ portfolio simulation, deterministic risk controls and automated order execution 
 goal of *identifying statistically defensible opportunities, explaining its reasoning and declining
 to trade when evidence is insufficient*.
 
-> **This repository currently contains Phases 1–6 (Foundation, Accounts, Market Data, Research AI, AI Desk, Model Engineering).**
+> **This repository currently contains Phases 1–7 (Foundation, Accounts, Market Data, Research AI, AI Desk, Model Engineering, Backtesting).**
 > There is no live trading, no payment processing, no customer money and no performance claim
 > anywhere in this codebase. Scope boundaries: [`phase-1.md`](docs/architecture/phase-1.md),
 > [`phase-2.md`](docs/architecture/phase-2.md), [`phase-3.md`](docs/architecture/phase-3.md),
 > [`phase-4.md`](docs/architecture/phase-4.md), [`phase-5.md`](docs/architecture/phase-5.md),
-> [`phase-6.md`](docs/architecture/phase-6.md).
+> [`phase-6.md`](docs/architecture/phase-6.md), [`phase-7.md`](docs/architecture/phase-7.md).
 
 ---
 
@@ -37,13 +37,13 @@ The demo is a product walkthrough, **not** a security boundary and holds no real
 
 ---
 
-## What Phases 1–6 deliver
+## What Phases 1–7 deliver
 
 | Area | Delivered |
 | --- | --- |
 | Architecture | Modular monolith, clearly separated domains, documented boundaries |
 | Backend | FastAPI + Pydantic v2, OpenAPI docs at `/docs`, health checks |
-| Database | PostgreSQL (SQLite for dev/test), 39 tables across 8 domains, Alembic migration |
+| Database | PostgreSQL (SQLite for dev/test), 44 tables across 9 domains, Alembic migration |
 | Financial core | **Double-entry ledger** — every transaction balances to zero, reconciliation records |
 | Auth | Registration, login, JWT access/refresh rotation, session revocation, password policy, rate limiting |
 | RBAC | `admin` / `analyst` / `user`, server-side guards, user isolation on every resource |
@@ -62,19 +62,23 @@ The demo is a product walkthrough, **not** a security boundary and holds no real
 | AI agents (P5) | 6 deterministic specialists (technical, regime, news, portfolio, quality, quantitative); 2 registered as explicitly unbuilt |
 | Orchestrator (P5) | Structured findings with evidence-or-absence, conflict detection, refusal when evidence is thin |
 | AI Desk UI (P5) | Findings with facts/interpretation/uncertainty split, confidence labelled as a rule score, blocked reason shown |
-| DX | Docker Compose (Postgres + Redis + API + web), seed script, 243 backend + 107 frontend tests; CI workflow in `docs/deployment/CI_WORKFLOWS.md` |
+| DX | Docker Compose (Postgres + Redis + API + web), seed script, 278 backend + 133 frontend tests; CI workflow in `docs/deployment/CI_WORKFLOWS.md` |
 
 | Model engineering (P6) | 15 leakage-tested features, forward-only time splits, numpy logistic training, 4-fold walk-forward |
 | Evaluation (P6) | Per-slice metrics with `is_out_of_sample`, majority-class baseline, edge over baseline, Brier, calibration slope and reliability bins |
 | Promotion control (P6) | Out-of-sample gate (edge ≥ 0.02, AUC ≥ 0.52, ≥60% folds positive), staff-only promotion, `replaced_version_id`, rollback, `FORCED OVERRIDE` audit stamp |
 | Model registry UI (P6) | Version history with checksums, evaluation and walk-forward tables, reliability bins, blocked-promotion state, advisory drift alerts |
+| Backtesting (P7) | Event-driven simulator: next-bar fills, stops resolved against the bar's low, spread/commission/slippage/financing on both sides |
+| Evaluation (P7) | Sharpe, Sortino, max drawdown, win rate, profit factor, exposure, turnover, cost drag — each with buy-and-hold over the identical window |
+| Strategy gate (P7) | ≥20 trades, net ≥ 0, edge over buy-and-hold ≥ 2%, drawdown better than −25%, Sharpe ≥ 0.30 |
+| Strategy control (P7) | Backtests can only move a strategy to `testing`; validation is staff-only and needs a passing run |
 | Drift monitoring (P6) | Standardised feature shift against the stored training reference; advisory text only, never an automatic action |
 
-### Explicitly **not** in Phase 6
+### Explicitly **not** in Phase 7
 
-Real execution, the independent risk controller, position management, strategy backtests
-and economics, streaming feeds, scheduling, deep-learning families, and any
-probability→stance conversion.
+Real execution, the independent risk controller, position management, live-data paper
+trading, parameter optimisation, streaming feeds, scheduling, deep-learning families,
+and any probability→stance conversion.
 
 **No AI proposal in this platform is tradeable, and there is no order path to
 reach.** Every run stores `tradeable: false` with the reason, a test asserts it

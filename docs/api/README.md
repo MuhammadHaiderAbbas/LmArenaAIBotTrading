@@ -137,8 +137,27 @@ Training returns `201` with `status: candidate`. Promotion returns `422` with a 
 out-of-sample gate fails; `force: true` (staff) overrides it and stamps `FORCED OVERRIDE` on the
 version.
 
+## Strategies & backtesting (Phase 7)
+
+| Method | Path | Auth | Purpose |
+| --- | --- | --- | --- |
+| GET | `/strategies` | bearer | Catalogue with each hypothesis stated |
+| GET | `/strategies/overview` | bearer | Counts, passing backtests, best edge |
+| GET | `/strategies/backtests` | bearer | Recent runs, filterable by strategy and symbol |
+| GET | `/strategies/backtests/{id}` | bearer | Full result: trades, equity curve, metrics |
+| POST | `/strategies/backtests` | bearer | Run a backtest with an explicit cost model |
+| GET | `/strategies/{id}/latest` | bearer | Most recent completed run |
+| POST | `/strategies/{id}/validate` | **staff** | Mark validated — refused unless a passing backtest exists |
+| POST | `/strategies/{id}/retire` | **staff** | Retire a strategy |
+
+A backtest returns `201` with `status: completed` (metrics, trades and equity) or
+`status: refused` with a `refusal_reason` when there is not enough history. Every
+completed result carries `baseline_return` (buy-and-hold, same window, same costs)
+and `edge_over_baseline`. Running a backtest never sets `status: validated` and never
+sets `live_eligible`.
+
 ## Reserved namespaces (implemented in later phases)
 
-`/strategies`, `/signals`, `/trading`, `/orders`, `/positions`, `/portfolio`, `/risk`, `/wallet`,
+`/signals`, `/trading`, `/orders`, `/positions`, `/portfolio`, `/risk`, `/wallet`,
 `/transactions`, `/analytics`, `/notifications`. These routes are intentionally absent so no client
 can assume they exist.

@@ -82,8 +82,28 @@ from app.models.research import (
 from app.models.research import (
     IngestRun as ResearchIngestRun,
 )
+from app.models.strategy import (
+    Backtest,
+    BacktestEquityPoint,
+    BacktestMetrics,
+    BacktestStatus,
+    BacktestTrade,
+    ExitReason,
+    Strategy,
+    StrategyFamily,
+    StrategyStatus,
+)
 
 __all__ = [
+    "Backtest",
+    "BacktestEquityPoint",
+    "BacktestMetrics",
+    "BacktestStatus",
+    "BacktestTrade",
+    "ExitReason",
+    "Strategy",
+    "StrategyFamily",
+    "StrategyStatus",
     "DriftEvent",
     "DriftSeverity",
     "EvaluationKind",
