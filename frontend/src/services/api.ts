@@ -20,6 +20,16 @@ import type {
   UserRole,
 } from "../lib/types";
 import { DemoApiError, demoApi } from "../lib/demo/engine";
+import { demoMarketApi } from "../lib/demo/marketEngine";
+import type {
+  CandleSeries,
+  Instrument,
+  MarketRow,
+  ProviderHealth,
+  QualitySummary,
+  SyncResponse,
+  Timeframe,
+} from "../lib/marketTypes";
 
 const ACCESS_KEY = "aurex.access";
 const REFRESH_KEY = "aurex.refresh";
@@ -264,5 +274,43 @@ export const api = {
   async systemStatus(): Promise<SystemStatus> {
     if (IS_DEMO) return wrapDemo(() => demoApi.systemStatus(demoSessionToken()));
     return http<SystemStatus>("/admin/system-status");
+  },
+
+  // ------------------------------------------------------------------ markets
+
+  async marketInstruments(): Promise<Instrument[]> {
+    if (IS_DEMO) return wrapDemo(() => demoMarketApi.instruments());
+    return http<Instrument[]>("/markets/instruments");
+  },
+
+  async marketOverview(): Promise<MarketRow[]> {
+    if (IS_DEMO) return wrapDemo(() => demoMarketApi.overview());
+    return http<MarketRow[]>("/markets/overview");
+  },
+
+  async candles(symbol: string, timeframe: Timeframe = "1d", limit = 180): Promise<CandleSeries> {
+    if (IS_DEMO) return wrapDemo(() => demoMarketApi.candles(symbol, timeframe, limit));
+    // '/' is legal in our symbols (BTC/USD), so encode it for the path.
+    return http<CandleSeries>(
+      `/markets/${encodeURIComponent(symbol)}/candles?timeframe=${timeframe}&limit=${limit}`,
+    );
+  },
+
+  async marketQuality(): Promise<QualitySummary> {
+    if (IS_DEMO) return wrapDemo(() => demoMarketApi.qualitySummary());
+    return http<QualitySummary>("/markets/quality/summary");
+  },
+
+  async marketProviders(): Promise<ProviderHealth[]> {
+    if (IS_DEMO) return wrapDemo(() => demoMarketApi.providers());
+    return http<ProviderHealth[]>("/markets/providers");
+  },
+
+  async syncMarkets(symbols: string[], timeframe: Timeframe = "1d"): Promise<SyncResponse> {
+    if (IS_DEMO) return wrapDemo(() => demoMarketApi.sync(symbols, timeframe));
+    return http<SyncResponse>("/markets/sync", {
+      method: "POST",
+      body: JSON.stringify({ symbols, timeframe, limit: 180, with_quotes: true }),
+    });
   },
 };

@@ -286,8 +286,8 @@ export function Layout() {
         <footer className="border-t border-line px-4 py-4 text-2xs text-ink-faint sm:px-6">
           <div className="mx-auto flex max-w-[1400px] flex-wrap items-center justify-between gap-2">
             <p>
-              AUREX AI · Phase 1 Foundation · Paper trading only. No real money, no broker execution,
-              no performance claims.
+              AUREX AI · Phase 3 Market Data · Paper trading only. No real money, no broker
+              execution, no performance claims.
             </p>
             <p>
               Historical and simulated results do not guarantee live outcomes. Not investment advice.

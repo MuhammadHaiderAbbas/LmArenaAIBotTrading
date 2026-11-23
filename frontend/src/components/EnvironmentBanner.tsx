@@ -20,8 +20,8 @@ export function EnvironmentBanner({ compact = false }: { compact?: boolean }) {
         Paper environment
       </Badge>
       <span className="text-ink-muted">
-        All balances are simulated virtual funds. Live trading and real-money transfers are disabled
-        in Phase 1.
+        All balances are simulated virtual funds. Live trading and real-money transfers are disabled.
+        Market data is real in the API build and synthetic in the static demo.
       </span>
       {IS_DEMO && (
         <span className="ml-auto rounded border border-line-strong px-1.5 py-0.5 font-semibold uppercase tracking-wider text-ink-faint">
