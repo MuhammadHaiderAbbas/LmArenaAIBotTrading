@@ -1,0 +1,42 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+.mypy_cache/
+.pytest_cache/
+.ruff_cache/
+htmlcov/
+.coverage
+
+# Node
+node_modules/
+frontend/dist/
+frontend/.vite/
+*.local
+
+# Environment & secrets — never commit
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+
+# Databases & logs
+*.db
+*.sqlite3
+*.log
+logs/
+
+# ML artefacts
+ml/models/*.pkl
+ml/models/*.joblib
+ml/models/*.pt
+mlruns/
+
+# OS / editors
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
