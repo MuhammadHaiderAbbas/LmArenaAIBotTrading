@@ -87,9 +87,21 @@ Every document is `untrusted = True`. Nothing in a document can cause an action.
 `vector.py` provides a **deterministic 256-dimension hashed lexical embedding**
 (blake2b → dimension + sign, sub-linear term frequency × IDF, unit-normalised).
 It is not a neural embedding, and the model name is stored on every chunk so the
-limitation is auditable rather than implied. Paraphrase recall is weak; exact
-policy vocabulary works well. Replacing `embed()` with a real model is a single
-function.
+limitation is auditable rather than implied.
+
+Pure lexical scoring fails on vocabulary the publisher did not use — a query for
+"interest rates and consumer prices" should reach a minute that says "Bank Rate"
+and "inflation". `vector.SYNONYM_GROUPS` declares a small, auditable set of
+near-synonyms for financial writing (rates/interest, inflation/cpi/prices,
+sterling/gbp, committee/mpc/fomc, …). The expanded terms pass the relevance floor
+at lower weight, so a passage that literally contains the query words still
+outranks one that only matches a synonym. Verified: with no literal overlap, the
+paraphrased query now returns on-topic BoE passages.
+
+This is not a neural embedding and is not presented as one. Replacing `embed()`
+with a real model remains a single function, but the sandbox this was built in
+could not install `torch`/`transformers`, so shipping an untested neural path
+would have been worse than the documented lexical one.
 
 `retrieval.search`:
 
@@ -203,7 +215,9 @@ without saying so would be exactly the failure mode this phase exists to prevent
 
 ## 8. What this phase does not do
 
-- **No neural embeddings.** Paraphrase retrieval is weak. Documented, not hidden.
+- **No neural embeddings.** Retrieval is lexical plus declared synonyms. Genuine
+  paraphrase (different sentence structure, same meaning) is still weaker than a
+  model would give; documented, not hidden.
 - **No LLM generation.** Interpretation is labelled and comes from templates,
   not a model.
 - **No strategy consumption of reports.** Reports are `draft` and are not wired
@@ -245,7 +259,7 @@ misleading "8 words" next to a 3,000-word speech.
 
 ## 9. Tests
 
-63 Phase 4 backend tests + 25 frontend tests (149 backend, 57 frontend total):
+66 Phase 4 backend tests + 25 frontend tests (152 backend, 57 frontend total):
 
 - `tests/test_research.py` — feed parsing incl. Atom and hostile DOCTYPE,
   injection detection and false positives, chunk offsets and word boundaries,

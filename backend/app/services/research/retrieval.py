@@ -136,6 +136,12 @@ def _rank(rows: list, filters: SearchFilters, *, limit: int, term: str | None = 
     if term is None:
         term = getattr(filters, "_term", "")
     query_tokens = set(vector.tokenise(term))
+    # Synonym-expanded query terms participate in the relevance floor, so a
+    # passage saying "the MPC held Bank Rate" is retrievable from "central bank
+    # interest rate decision" without pretending the two strings are equal.
+    expanded_query = set()
+    for token in query_tokens:
+        expanded_query |= vector.expand(token)
     query_vector = vector.embed(term)
     if not query_tokens:
         return []
@@ -143,7 +149,7 @@ def _rank(rows: list, filters: SearchFilters, *, limit: int, term: str | None = 
     lexical: list[tuple[float, int]] = []
     semantic: list[tuple[float, int]] = []
     for index, (chunk, _document, _source) in enumerate(rows):
-        lexical.append((_bm25ish(chunk.text, query_tokens), index))
+        lexical.append((_bm25ish(chunk.text, expanded_query), index))
         semantic.append((vector.cosine(query_vector, vector.deserialise(chunk.embedding)), index))
 
     lexical_rank = _ranks(lexical)
@@ -157,7 +163,11 @@ def _rank(rows: list, filters: SearchFilters, *, limit: int, term: str | None = 
         # ended up citing a story about gold.
         haystack = set(vector.tokenise(f"{document.title} {chunk.text}"))
         if not (query_tokens & haystack):
-            continue
+            # Allow an exact-synonym match through the floor, but keep it weaker
+            # than a literal match so literal evidence still leads the ranking.
+            synonym_hits = expanded_query & haystack
+            if not synonym_hits:
+                continue
         score = 0.0
         if index in lexical_rank:
             score += 1.0 / (RRF_K + lexical_rank[index])

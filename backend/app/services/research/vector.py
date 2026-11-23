@@ -48,8 +48,62 @@ STOPWORDS = frozenset(
 )
 
 
+# Financial writing uses a small set of near-synonyms that a lexical index would
+# otherwise treat as unrelated. A query for "central bank interest rates" misses a
+# passage that says "the MPC held Bank Rate" unless the vocabulary is bridged.
+#
+# This is not a substitute for a neural embedding, and it is not presented as one.
+# It is an explicit, auditable list: a reviewer can see exactly which terms are
+# treated as equivalent, which is not true of whatever a model learned.
+SYNONYM_GROUPS: tuple[frozenset[str], ...] = (
+    frozenset({"rate", "rates", "interest", "bankrate"}),
+    frozenset({"inflation", "cpi", "prices", "price"}),
+    frozenset({"unemployment", "jobless", "employment", "labour", "labor"}),
+    frozenset({"growth", "gdp", "output", "activity"}),
+    frozenset({"sterling", "gbp", "pound"}),
+    frozenset({"euro", "eur", "eurozone"}),
+    frozenset({"dollar", "usd", "greenback"}),
+    frozenset({"committee", "mpc", "fomc", "governing", "council", "board"}),
+    frozenset({"decision", "decided", "vote", "voted", "voting"}),
+    frozenset({"forecast", "projection", "expect", "expected", "outlook"}),
+    frozenset({"taper", "tightening", "restrictive", "hawkish"}),
+    frozenset({"easing", "ease", "dovish", "loosening", "cut"}),
+    frozenset({"gilt", "gilts", "treasury", "treasuries", "bond", "bonds"}),
+    frozenset({"equity", "equities", "stock", "stocks", "share", "shares"}),
+    frozenset({"crude", "oil", "brent", "wti"}),
+)
+
+_SYNONYM_INDEX: dict[str, frozenset[str]] = {
+    term: group for group in SYNONYM_GROUPS for term in group
+}
+
+
+def expand(token: str) -> frozenset[str]:
+    """Return the token plus any declared near-synonyms."""
+    group = _SYNONYM_INDEX.get(token)
+    return group if group else frozenset({token})
+
+
 def tokenise(text: str) -> list[str]:
     return [token for token in TOKEN_RE.findall(text.lower()) if token not in STOPWORDS and len(token) > 2]
+
+
+def tokenise_expanded(text: str, *, weight: float = 0.5) -> list[str]:
+    """Tokenise, repeating each token's synonyms a fraction as often.
+
+    The original terms keep full weight; synonyms are weighted down so a passage
+    that literally uses the query words still outranks one that only uses the
+    expanded vocabulary.
+    """
+    tokens = tokenise(text)
+    if weight <= 0:
+        return tokens
+    expanded = list(tokens)
+    for token in tokens:
+        for synonym in expand(token):
+            if synonym != token:
+                expanded.append(synonym)
+    return expanded
 
 
 def _hash(token: str) -> tuple[int, float]:

@@ -532,3 +532,34 @@ def test_every_source_declares_its_licence_terms(db_session) -> None:
         assert source.licence and source.licence != "unknown"
         assert source.terms_url
         assert source.redistribution in {"link_only", "excerpt", "full"}
+
+
+# ------------------------------------------------------- paraphrase retrieval
+
+
+def test_synonyms_bridge_vocabulary_gaps() -> None:
+    """A query should not have to use the publisher's exact words."""
+    assert "inflation" in vector.expand("cpi")
+    assert "gbp" in vector.expand("sterling")
+    assert "mpc" in vector.expand("committee")
+    # A word with no declared synonym expands only to itself.
+    assert vector.expand("earthquake") == frozenset({"earthquake"})
+
+
+def test_paraphrased_query_finds_the_passage(db_session, monkeypatch) -> None:
+    db = db_session
+    _seed_corpus(db, monkeypatch)
+
+    # "interest rates" and "prices" never appear in the corpus; "Bank Rate" and
+    # "inflation" do. Without synonym expansion this query returns nothing.
+    hits = retrieval.search(db, "interest rates prices", retrieval.SearchFilters(limit=5))
+    assert hits, "synonym expansion should retrieve the rates/inflation passage"
+    assert any("Bank Rate" in hit.text for hit in hits)
+
+
+def test_literal_matches_still_outrank_synonym_matches(db_session, monkeypatch) -> None:
+    db = db_session
+    _seed_corpus(db, monkeypatch)
+    hits = retrieval.search(db, "Bank Rate", retrieval.SearchFilters(limit=5))
+    assert hits
+    assert "Bank Rate" in hits[0].text

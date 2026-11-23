@@ -53,11 +53,11 @@ The demo is a product walkthrough, **not** a security boundary and holds no real
 | Data quality (P3) | Gaps, duplicates, outliers, staleness and provider errors recorded with severity |
 | Markets UI (P3) | Screener, candlestick chart with overlays, indicator readout, provider health |
 | Research ingestion (P4) | 6 keyless sources (ECB, BoE, Fed, SEC EDGAR, Dow Jones, BBC), HTML + PDF bodies, dedupe, chunking, entity tagging |
-| RAG (P4) | 256-dim lexical embeddings, rank-then-hydrate retrieval, per-document diversity, tool-call-free |
+| RAG (P4) | 256-dim lexical embeddings with auditable synonym expansion, rank-then-hydrate retrieval, per-document diversity |
 | Verified reports (P4) | Extractive `extractive-v1` builder — every claim cites a passage, failed claims shown not dropped |
 | Safety (P4) | Prompt-injection detection, licence-aware storage, documents always untrusted |
 | Research UI (P4) | Source register with licence and failure state, claim/verdict evidence view, flagged documents |
-| DX | Docker Compose (Postgres + Redis + API + web), seed script, 149 backend + 57 frontend tests, CI |
+| DX | Docker Compose (Postgres + Redis + API + web), seed script, 152 backend + 57 frontend tests, CI |
 
 ### Explicitly **not** in Phase 4
 
