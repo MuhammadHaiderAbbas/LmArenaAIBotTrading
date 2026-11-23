@@ -21,6 +21,16 @@ import type {
 } from "../lib/types";
 import { DemoApiError, demoApi } from "../lib/demo/engine";
 import { demoMarketApi } from "../lib/demo/marketEngine";
+import { demoResearchApi } from "../lib/demo/researchEngine";
+import type {
+  IngestResponse,
+  ResearchDocument,
+  ResearchOverview,
+  ResearchReport,
+  ResearchSource,
+  Claim,
+  SearchHit,
+} from "../lib/researchTypes";
 import type {
   CandleSeries,
   Instrument,
@@ -304,6 +314,69 @@ export const api = {
   async marketProviders(): Promise<ProviderHealth[]> {
     if (IS_DEMO) return wrapDemo(() => demoMarketApi.providers());
     return http<ProviderHealth[]>("/markets/providers");
+  },
+
+  // ------------------------------------------------------------------ research
+
+  async researchSources(): Promise<ResearchSource[]> {
+    if (IS_DEMO) return wrapDemo(() => demoResearchApi.sources());
+    return http<ResearchSource[]>("/research/sources");
+  },
+
+  async researchOverview(): Promise<ResearchOverview> {
+    if (IS_DEMO) return wrapDemo(() => demoResearchApi.overview());
+    return http<ResearchOverview>("/research/overview");
+  },
+
+  async researchDocuments(params: { source?: string; instrument?: string; flaggedOnly?: boolean; limit?: number } = {}): Promise<ResearchDocument[]> {
+    if (IS_DEMO) return wrapDemo(() => demoResearchApi.documents(params));
+    const query = new URLSearchParams();
+    if (params.source) query.set("source", params.source);
+    if (params.instrument) query.set("instrument", params.instrument);
+    if (params.flaggedOnly) query.set("flagged_only", "true");
+    query.set("limit", String(params.limit ?? 40));
+    return http<ResearchDocument[]>(`/research/documents?${query}`);
+  },
+
+  async researchSearch(q: string, params: { source?: string; instrument?: string; days?: number } = {}): Promise<SearchHit[]> {
+    if (IS_DEMO) return wrapDemo(() => demoResearchApi.search(q, params));
+    const query = new URLSearchParams({ q });
+    if (params.source) query.set("source", params.source);
+    if (params.instrument) query.set("instrument", params.instrument);
+    if (params.days) query.set("days", String(params.days));
+    const body = await http<{ hits: SearchHit[] }>(`/research/search?${query}`);
+    return body.hits;
+  },
+
+  async researchReports(): Promise<ResearchReport[]> {
+    if (IS_DEMO) return wrapDemo(() => demoResearchApi.reports());
+    return http<ResearchReport[]>("/research/reports");
+  },
+
+  async researchReport(id: string): Promise<ResearchReport & { claims: Claim[] }> {
+    if (IS_DEMO) return wrapDemo(() => demoResearchApi.report(id));
+    return http<ResearchReport & { claims: Claim[] }>(`/research/reports/${id}`);
+  },
+
+  async createResearchReport(input: {
+    query: string;
+    topic?: string;
+    instrument_symbol?: string | null;
+    days?: number;
+  }): Promise<ResearchReport & { claims: Claim[] }> {
+    if (IS_DEMO) return wrapDemo(() => demoResearchApi.createReport(input));
+    return http<ResearchReport & { claims: Claim[] }>("/research/reports", {
+      method: "POST",
+      body: JSON.stringify(input),
+    });
+  },
+
+  async ingestResearch(sources: string[] = []): Promise<IngestResponse> {
+    if (IS_DEMO) return wrapDemo(() => demoResearchApi.ingest(sources));
+    return http<IngestResponse>("/research/ingest", {
+      method: "POST",
+      body: JSON.stringify({ sources, limit_per_source: 25 }),
+    });
   },
 
   async syncMarkets(symbols: string[], timeframe: Timeframe = "1d"): Promise<SyncResponse> {

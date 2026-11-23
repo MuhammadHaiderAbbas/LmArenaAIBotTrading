@@ -1,6 +1,6 @@
 # AUREX AI — Autonomous Trading & Financial Intelligence Platform
 
-**Version 0.1.0 · Phase 1: Foundation** · paper trading only · no real money · no broker execution
+**Version 0.1.0 · Phases 1–4** · paper trading only · no real money · no broker execution
 
 AUREX AI is a multi-market quantitative trading and financial research platform. It combines
 market-data ingestion, specialist AI research agents, quantitative models, strategy evaluation,
@@ -8,9 +8,10 @@ portfolio simulation, deterministic risk controls and automated order execution 
 goal of *identifying statistically defensible opportunities, explaining its reasoning and declining
 to trade when evidence is insufficient*.
 
-> **This repository currently contains Phase 1 (Foundation) only.** There is no live trading, no
-> payment processing, no customer money and no performance claim anywhere in this codebase. Read
-> [`docs/architecture/phase-1.md`](docs/architecture/phase-1.md) for the exact scope boundary.
+> **This repository currently contains Phases 1–4 (Foundation, Accounts, Market Data, Research AI).**
+> There is no live trading, no payment processing, no customer money and no performance claim
+> anywhere in this codebase. Scope boundaries: [`phase-1.md`](docs/architecture/phase-1.md),
+> [`phase-3.md`](docs/architecture/phase-3.md), [`phase-4.md`](docs/architecture/phase-4.md).
 
 ---
 
@@ -31,13 +32,13 @@ The demo is a product walkthrough, **not** a security boundary and holds no real
 
 ---
 
-## What Phases 1–3 deliver
+## What Phases 1–4 deliver
 
 | Area | Delivered |
 | --- | --- |
 | Architecture | Modular monolith, clearly separated domains, documented boundaries |
 | Backend | FastAPI + Pydantic v2, OpenAPI docs at `/docs`, health checks |
-| Database | PostgreSQL (SQLite for dev/test), 13 tables across 5 domains, Alembic migration |
+| Database | PostgreSQL (SQLite for dev/test), 30 tables across 6 domains, Alembic migration |
 | Financial core | **Double-entry ledger** — every transaction balances to zero, reconciliation records |
 | Auth | Registration, login, JWT access/refresh rotation, session revocation, password policy, rate limiting |
 | RBAC | `admin` / `analyst` / `user`, server-side guards, user isolation on every resource |
@@ -48,12 +49,26 @@ The demo is a product walkthrough, **not** a security boundary and holds no real
 | Indicators (P3) | SMA, EMA, RSI, ATR, MACD, Bollinger, volatility — verified against published references |
 | Data quality (P3) | Gaps, duplicates, outliers, staleness and provider errors recorded with severity |
 | Markets UI (P3) | Screener, candlestick chart with overlays, indicator readout, provider health |
-| DX | Docker Compose (Postgres + Redis + API + web), seed script, 118 tests, CI |
+| Research ingestion (P4) | 6 keyless sources (ECB, BoE, Fed, SEC EDGAR, Dow Jones, BBC), dedupe, chunking, entity tagging |
+| RAG (P4) | 256-dim lexical embeddings, rank-then-hydrate retrieval, per-document diversity, tool-call-free |
+| Verified reports (P4) | Extractive `extractive-v1` builder — every claim cites a passage, failed claims shown not dropped |
+| Safety (P4) | Prompt-injection detection, licence-aware storage, documents always untrusted |
+| Research UI (P4) | Source register with licence and failure state, claim/verdict evidence view, flagged documents |
+| DX | Docker Compose (Postgres + Redis + API + web), seed script, 140 backend + 57 frontend tests, CI |
 
-### Explicitly **not** in Phase 3
+### Explicitly **not** in Phase 4
 
-Real deposits, withdrawals, customer funds, KYC, broker connections, live execution, AI agents,
-models, backtests, streaming feeds. Each has a phase and a gate (see roadmap below).
+Real deposits, withdrawals, customer funds, KYC, broker connections, live execution, autonomous
+agents acting on research, backtests, streaming feeds. Each has a phase and a gate (see roadmap below).
+
+**Phase 4 does not use a language model to write research.** The report builder is extractive and
+deterministic: it lifts a sentence from a cited chunk and verifies the claim against that sentence.
+Claims that fail verification are displayed as `unsupported` rather than removed. The retrieval
+vector is a hashed lexical embedding, not a neural one, and the model name is stored on every chunk.
+
+**Nothing loaded from the web is trusted.** Retrieved documents are data; instruction-like text is
+detected and recorded, and can never cause an action. Link-only publishers are fetched into memory
+for analysis and never persisted — the citation says so.
 
 **No instrument is tradable in Phase 3.** The registry exists so data can be analysed, not so
 orders can be placed. `is_tradable` is `false` on every instrument and a test enforces it.
@@ -221,7 +236,7 @@ limiting for multi-instance deployments, dependency scanning in CI.
 | 01 | Repository, Docker, Postgres, auth, migrations, API structure | **Complete** |
 | 02 | Design system, navigation, dashboard, account screens | **Complete** |
 | 03 | Instrument registry, provider adapters, historical data, indicators, quality | **Complete** |
-| 04 | News ingestion, document extraction, RAG, source-linked reports | Planned |
+| 04 | News ingestion, document extraction, RAG, source-linked reports | **Complete** |
 | 05 | Orchestrator, specialist agents, structured outputs | Planned |
 | 06 | Feature engineering, training, validation, drift monitoring | Planned |
 | 07 | Event-driven simulator, costs, slippage, out-of-sample evaluation | Planned |
