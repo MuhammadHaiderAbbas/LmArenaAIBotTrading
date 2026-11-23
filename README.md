@@ -21,7 +21,10 @@ GitHub Pages serves a **static demo build** of the terminal. Pages cannot run Py
 the demo ships an in-browser implementation of the same API contracts — including a real double-entry
 ledger — persisted to `localStorage`.
 
-- **Demo:** <https://muhammadhaiderabbas.github.io/LmArenaAIBotTrading/>
+- **Demo:** <https://muhammadhaiderabbas.github.io/LmArenaAIBotTrading/> — this URL serves the
+  running app. (GitHub Pages for this repo is configured from the root of `main` with Jekyll, so a
+  small `index.html` there forwards to the build in `docs/live/`. Repointing Pages at the
+  `gh-pages` branch removes the hop — see [`docs/deployment/HOSTING.md`](docs/deployment/HOSTING.md).)
 - Sign in with `demo@aurex.ai` / `Demo!Aurex2026`, or register your own (you get a funded paper account)
 - The bundle is published from the `gh-pages` branch; see
   [`docs/deployment/HOSTING.md`](docs/deployment/HOSTING.md) for how it is built and redeployed
