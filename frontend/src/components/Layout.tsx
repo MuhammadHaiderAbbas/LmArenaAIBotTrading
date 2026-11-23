@@ -35,10 +35,10 @@ export interface NavItem {
 export const NAV_ITEMS: NavItem[] = [
   { to: "/overview", label: "Overview", icon: <IconGrid /> },
   { to: "/markets", label: "Markets", icon: <IconCandles />, phase: 3 },
-  { to: "/trading", label: "AI Trading", icon: <IconBot />, phase: 5 },
+  { to: "/trading", label: "Execution", icon: <IconBot />, phase: 8 },
   { to: "/research", label: "AI Research Lab", icon: <IconFlask />, phase: 4 },
   { to: "/ai", label: "AI Desk", icon: <IconCpu />, phase: 5 },
-  { to: "/strategies", label: "Strategies", icon: <IconLayers />, phase: 6 },
+  { to: "/models", label: "Models", icon: <IconLayers />, phase: 6 },
   { to: "/portfolio", label: "Portfolio", icon: <IconChart /> },
   { to: "/risk", label: "Risk Centre", icon: <IconShield />, phase: 9 },
   { to: "/wallet", label: "Wallet", icon: <IconWallet /> },

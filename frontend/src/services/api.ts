@@ -22,6 +22,8 @@ import type {
 import { DemoApiError, demoApi } from "../lib/demo/engine";
 import { demoMarketApi } from "../lib/demo/marketEngine";
 import { demoAiApi } from "../lib/demo/aiEngine";
+import * as demoModelEngine from "../lib/demo/modelEngine";
+import type { DriftEvent as DemoDriftEvent, ModelOverview as DemoModelOverview, ModelVersion as DemoModelVersion } from "../lib/demo/modelEngine";
 import { demoResearchApi } from "../lib/demo/researchEngine";
 import type { Agent, AgentRun, AIOverview } from "../lib/aiTypes";
 import type {
@@ -319,6 +321,34 @@ export const api = {
   },
 
   // ------------------------------------------------------------------------- ai
+
+  async modelOverview(symbol = "GBP/USD"): Promise<DemoModelOverview> {
+    if (IS_DEMO) return demoModelEngine.overview(symbol);
+    return http<DemoModelOverview>(`/models/overview`);
+  },
+
+  async modelVersions(symbol = "GBP/USD"): Promise<DemoModelVersion[]> {
+    if (IS_DEMO) return demoModelEngine.versionsFor(symbol);
+    return http<DemoModelVersion[]>(`/models/versions?symbol=${encodeURIComponent(symbol)}`);
+  },
+
+  async modelTrain(input: { model_code?: string; symbol: string; timeframe?: string }): Promise<DemoModelVersion> {
+    if (IS_DEMO) {
+      return wrapDemo(async () => {
+        const versions = demoModelEngine.versionsFor(input.symbol);
+        return versions[0];
+      });
+    }
+    return http<DemoModelVersion>("/models/train", {
+      method: "POST",
+      body: JSON.stringify({ model_code: input.model_code ?? "direction_logistic_v1", ...input }),
+    });
+  },
+
+  async modelDrift(symbol = "GBP/USD"): Promise<DemoDriftEvent[]> {
+    if (IS_DEMO) return demoModelEngine.driftFor(symbol);
+    return http<DemoDriftEvent[]>(`/models/drift`);
+  },
 
   async aiAgents(): Promise<Agent[]> {
     if (IS_DEMO) return wrapDemo(() => demoAiApi.agents());

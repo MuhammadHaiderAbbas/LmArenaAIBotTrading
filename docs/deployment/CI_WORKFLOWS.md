@@ -1,8 +1,12 @@
 # CI workflow files (held back from the Contents-only push)
 
 GitHub rejects any change to `.github/workflows/` from a token without the
-`workflow` scope. These files are the current intent; add them via the web UI
-or push from a machine with the scope. See HOSTING.md.
+`workflow` scope, so the workflow below is kept here as the source of truth and
+added through the web UI or a push from a machine with that scope. It is written
+for Phases 1–6: it typechecks, lints, guards secrets, proves migrations round-trip
+and runs the full test suite.
+
+To activate it, create `.github/workflows/ci.yml` with exactly this content.
 
 ## `.github/workflows/ci.yml`
 
@@ -13,83 +17,74 @@ on:
   push:
     branches: [main]
   pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   backend:
-    name: Backend tests & lint
+    name: Backend — lint, secrets, tests
     runs-on: ubuntu-latest
     defaults:
       run:
         working-directory: backend
+    env:
+      ENVIRONMENT: test
+      # Test-only values. Nothing here is a real credential and the secret guard
+      # below asserts that none are committed.
+      SECRET_KEY: ci-test-secret-key-not-for-production-0123456789
+      DATABASE_URL: sqlite:///./ci.db
     steps:
       - uses: actions/checkout@v4
+
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
           cache: pip
           cache-dependency-path: backend/requirements.txt
-      - name: Install dependencies
-        run: pip install -r requirements.txt
+
+      - name: Install
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install ruff pytest
+
       - name: Lint
         run: ruff check app tests
+
+      - name: Secret guard
+        working-directory: .
+        run: |
+          # Fail if anything that looks like a live credential is committed.
+          if git grep -nIE '(sk-[A-Za-z0-9]{20,}|ghp_[A-Za-z0-9]{20,}|AKIA[0-9A-Z]{16}|-----BEGIN (RSA |EC )?PRIVATE KEY-----)' \
+              -- . ':!*.lock' ':!docs/**' ':!backend/tests/**'; then
+            echo "::error::Possible credential committed"
+            exit 1
+          fi
+          if git ls-files | grep -E '(^|/)\.env$'; then
+            echo "::error::A .env file is tracked"
+            exit 1
+          fi
+
+      - name: Migrations apply cleanly
+        run: |
+          alembic upgrade head
+          alembic downgrade base
+          alembic upgrade head
+
       - name: Tests
         run: pytest -q
 
   frontend:
-    name: Frontend typecheck, tests & build
+    name: Frontend — typecheck, tests, build
     runs-on: ubuntu-latest
     defaults:
       run:
         working-directory: frontend
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: "20"
-          cache: npm
-          cache-dependency-path: frontend/package-lock.json
-      - run: npm ci
-      - run: npm run typecheck
-      - run: npm test
-      - run: npm run build
-
-  secret-guard:
-    name: Secret guard
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 2
-      - name: Block committed secrets
-        run: |
-          python3 scripts/check_secrets.py $(git diff --name-only HEAD~1 HEAD 2>/dev/null || echo "")
-```
-
-## `.github/workflows/deploy-pages.yml`
-
-```yaml
-name: Deploy demo to GitHub Pages
-
-on:
-  push:
-    branches: [main]
-  workflow_dispatch:
-
-permissions:
-  contents: read
-  pages: write
-  id-token: write
-
-concurrency:
-  group: pages
-  cancel-in-progress: true
-
-jobs:
-  build:
-    name: Build static demo
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
 
       - uses: actions/setup-node@v4
         with:
@@ -97,40 +92,25 @@ jobs:
           cache: npm
           cache-dependency-path: frontend/package-lock.json
 
-      - name: Install dependencies
-        working-directory: frontend
+      - name: Install
         run: npm ci
 
-      - name: Type check
-        working-directory: frontend
-        run: npm run typecheck
+      - name: Typecheck
+        run: npx tsc --noEmit
 
-      - name: Build demo bundle
-        working-directory: frontend
-        env:
-          GITHUB_REPOSITORY: ${{ github.repository }}
-        run: npm run build:demo
+      - name: Tests
+        run: npm run test
 
-      - name: Add SPA fallback and nojekyll
-        working-directory: frontend
-        run: |
-          cp dist/index.html dist/404.html
-          touch dist/.nojekyll
-
-      - uses: actions/configure-pages@v5
-
-      - uses: actions/upload-pages-artifact@v3
-        with:
-          path: frontend/dist
-
-  deploy:
-    name: Deploy
-    needs: build
-    runs-on: ubuntu-latest
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-    steps:
-      - id: deployment
-        uses: actions/deploy-pages@v4
+      - name: Build
+        run: npm run build
 ```
+
+## What it checks
+
+| Job | Steps |
+| --- | --- |
+| Backend | `ruff check app tests` · secret guard · `alembic upgrade head` → `downgrade base` → `upgrade head` · `pytest -q` |
+| Frontend | `tsc --noEmit` · `npm run test` · `npm run build` |
+
+The secret guard fails the build if anything shaped like a live credential (PAT,
+API key, private key) is committed, or if a `.env` file is tracked.

@@ -43,7 +43,7 @@ logger = logging.getLogger(__name__)
 # they supply context and constraints rather than a stance, and their absence must
 # not silently flip a synthesis.
 DIRECTIONAL_AGENTS = ("technical",)
-INFORMATIONAL_AGENTS = ("news", "regime", "portfolio", "quality")
+INFORMATIONAL_AGENTS = ("news", "regime", "portfolio", "quality", "quantitative")
 
 DISAGREEMENT_THRESHOLD = 0.25
 
@@ -179,6 +179,58 @@ def _research_context(db: Session, symbol: str) -> tuple[list[dict], list[dict],
     return claims, list(documents.values()), round(coverage, 3)
 
 
+def _model_forecast(db: Session, symbol: str, timeframe: str) -> dict | None:
+    """Score the champion version for this instrument, if one exists.
+
+    Returns None when there is no champion — which is the normal state, and the
+    quantitative agent reports it as an absence rather than a neutral view.
+    """
+    from app.models.ml import EvaluationKind, Model, ModelEvaluation, ModelStatus, ModelVersion
+    from app.services.ml import registry as ml_registry
+
+    version = db.scalar(
+        select(ModelVersion)
+        .where(
+            ModelVersion.status == ModelStatus.CHAMPION,
+            ModelVersion.instrument_symbol == symbol,
+            ModelVersion.timeframe == timeframe,
+        )
+        .order_by(ModelVersion.promoted_at.desc())
+    )
+    if version is None:
+        return None
+
+    model = db.get(Model, version.model_id)
+    try:
+        matrix = ml_registry.build_matrix_for(db, symbol, timeframe, horizon=version.label_horizon)
+        probability = ml_registry.predict_probability(db, version_id=version.id, matrix=matrix)
+    except ValueError as exc:
+        logger.info("champion scoring unavailable for %s: %s", symbol, exc)
+        return None
+    if probability is None:
+        return None
+
+    oos = db.scalar(
+        select(ModelEvaluation).where(
+            ModelEvaluation.version_id == version.id,
+            ModelEvaluation.kind == EvaluationKind.OUT_OF_SAMPLE,
+        )
+    )
+    return {
+        "version_id": version.id,
+        "version": version.version,
+        "model_code": model.code if model else "",
+        "probability": round(probability, 4),
+        "horizon": version.label_horizon,
+        "out_of_sample_accuracy": oos.accuracy if oos else None,
+        "baseline_accuracy": oos.baseline_accuracy if oos else None,
+        "edge_over_baseline": oos.edge_over_baseline if oos else None,
+        "calibration_slope": oos.calibration_slope if oos else None,
+        "roc_auc": oos.roc_auc if oos else None,
+        "out_of_sample_rows": oos.rows if oos else 0,
+    }
+
+
 def _portfolio_context(db: Session, account_id: str | None) -> dict:
     if not account_id:
         return {}
@@ -254,6 +306,7 @@ def build_context(
         research_coverage=coverage,
         portfolio=_portfolio_context(db, account_id),
         regime_history=_regime_history(db, instrument_id, timeframe_enum),
+        model_forecast=_model_forecast(db, symbol, timeframe_enum.value),
     )
 
 
@@ -513,10 +566,13 @@ AGENT_REGISTRY = [
         "code": "quantitative",
         "name": "Quantitative Analyst",
         "role": "quantitative",
-        "description": "Model forecasts with calibration and uncertainty from Phase 6 models.",
-        "implemented": False,
-        "inputs": "Validated model outputs and feature sets",
-        "outputs": "Forecasts, uncertainty, calibration evidence",
+        "description": (
+            "Reports the champion model's probability with its out-of-sample edge and "
+            "calibration slope. Takes no stance from it."
+        ),
+        "implemented": True,
+        "inputs": "Promoted model version, stored parameters, out-of-sample evaluation",
+        "outputs": "Up-probability with baseline comparison and calibration caveats",
     },
 ]
 

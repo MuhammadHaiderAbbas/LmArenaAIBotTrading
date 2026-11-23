@@ -12,8 +12,9 @@ import {
 describe("demo agent registry", () => {
   it("marks the specialists it has not built", () => {
     const planned = DEMO_AGENTS.filter((agent) => !agent.implemented).map((agent) => agent.code);
-    expect(planned).toEqual(["fundamental", "sentiment", "quantitative"]);
-    expect(DEMO_AGENTS.filter((agent) => agent.implemented)).toHaveLength(5);
+    // Phase 6 implemented the quantitative agent against the model registry.
+    expect(planned).toEqual(["fundamental", "sentiment"]);
+    expect(DEMO_AGENTS.filter((agent) => agent.implemented)).toHaveLength(6);
   });
 
   it("declares every agent deterministic", () => {
@@ -52,7 +53,7 @@ describe("technical agent", () => {
   });
 
   it("keeps measured facts separate from interpretation", () => {
-    const finding = technicalFinding("SPX500");
+    const finding = technicalFinding("SPY");
     // Facts list the measured inputs; interpretation never restates them.
     expect(finding.facts.split("\n").length).toBeGreaterThanOrEqual(1);
     expect(finding.interpretation).not.toContain("Last close");
@@ -94,20 +95,21 @@ describe("news agent", () => {
 });
 
 describe("orchestrated runs", () => {
-  it("always returns all five implemented findings", () => {
+  it("always returns all six implemented findings", () => {
     const run = buildRun({ symbol: "GBP/USD" });
-    expect(run.findings).toHaveLength(5);
+    expect(run.findings).toHaveLength(6);
     expect(run.findings?.map((finding) => finding.agent_code)).toEqual([
       "technical",
       "regime",
       "news",
       "portfolio",
       "quality",
+      "quantitative",
     ]);
   });
 
   it("is never tradeable", () => {
-    for (const symbol of ["GBP/USD", "BTC/USD", "SPX500", "NOT/REAL"]) {
+    for (const symbol of ["GBP/USD", "BTC/USD", "AAPL", "NOT/REAL"]) {
       const run = buildRun({ symbol });
       expect(run.tradeable).toBe(false);
       expect(run.blocked_reason.length).toBeGreaterThan(10);
@@ -144,7 +146,7 @@ describe("demo ai api", () => {
   it("reports zero tradeable proposals", async () => {
     const overview = await demoAiApi.overview();
     expect(overview.tradeable_proposals).toBe(0);
-    expect(overview.agents_implemented).toBe(5);
+    expect(overview.agents_implemented).toBe(6);
     expect(overview.agents_total).toBe(8);
   });
 });

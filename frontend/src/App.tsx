@@ -9,6 +9,7 @@ import { Overview } from "./pages/Overview";
 import { Markets } from "./pages/Markets";
 import { Trading } from "./pages/Trading";
 import { AIDesk } from "./pages/AIDesk";
+import { Models } from "./pages/Models";
 import { Research } from "./pages/Research";
 import { Strategies } from "./pages/Strategies";
 import { Portfolio } from "./pages/Portfolio";
@@ -45,6 +46,7 @@ export function App() {
                 <Route path="/trading" element={<Trading />} />
                 <Route path="/research" element={<Research />} />
                 <Route path="/ai" element={<AIDesk />} />
+                <Route path="/models" element={<Models />} />
                 <Route path="/strategies" element={<Strategies />} />
                 <Route path="/portfolio" element={<Portfolio />} />
                 <Route path="/risk" element={<RiskCentre />} />

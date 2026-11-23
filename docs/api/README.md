@@ -80,8 +80,65 @@ curl -X POST http://localhost:8000/api/v1/accounts/<id>/deposit \
 curl http://localhost:8000/api/v1/accounts/<id>/ledger -H "Authorization: Bearer $TOKEN"
 ```
 
+## Market data
+
+| Method | Path | Auth | Purpose |
+| --- | --- | --- | --- |
+| GET | `/markets/instruments` | bearer | Registry of venues, instruments and specs |
+| GET | `/markets/{symbol}/candles` | bearer | OHLCV series for a timeframe |
+| GET | `/markets/{symbol}/indicators` | bearer | SMA/EMA/RSI/MACD/ATR/Bollinger snapshot |
+| GET | `/markets/{symbol}/quality` | bearer | Gaps, duplicates, outliers and staleness |
+| POST | `/markets/sync` | staff | Pull candles from the provider into the database |
+| POST | `/markets/reseed` | staff | Re-seed the instrument registry |
+
+## Research lab
+
+| Method | Path | Auth | Purpose |
+| --- | --- | --- | --- |
+| GET | `/research/documents` | bearer | Ingested documents with trust tier |
+| POST | `/research/documents` | bearer | Ingest text, URL or PDF |
+| GET | `/research/claims` | bearer | Extracted claims and their verdicts |
+| POST | `/research/verify` | bearer | Verify a claim against the corpus |
+| GET | `/research/reports` | bearer | Generated evidence reports |
+| POST | `/research/reports` | bearer | Compose a report from verified claims |
+
+(12 routes in total; see `/openapi.json` for the full list.)
+
+## AI orchestration
+
+| Method | Path | Auth | Purpose |
+| --- | --- | --- | --- |
+| GET | `/ai/agents` | bearer | Specialist registry, with `implemented` flags |
+| GET | `/ai/overview` | bearer | Run counters, refusals and tradeable proposals |
+| GET | `/ai/runs` | bearer | Recent runs, optionally filtered by symbol |
+| POST | `/ai/run` | bearer | Run the specialists for one instrument |
+| GET | `/ai/runs/{id}` | bearer | Full run with findings and evidence |
+
+Every run returns `tradeable: false` with a `blocked_reason`.
+
+## Model registry (Phase 6)
+
+| Method | Path | Auth | Purpose |
+| --- | --- | --- | --- |
+| GET | `/models` | bearer | Registered model families |
+| GET | `/models/overview` | bearer | Registry counters and champion detail |
+| GET | `/models/versions` | bearer | Version history, optionally by model or symbol |
+| GET | `/models/versions/{id}` | bearer | Version detail, evaluations, feature snapshots, gate verdict |
+| GET | `/models/versions/{id}/summary` | bearer | One-line verdict and walk-forward folds |
+| POST | `/models/train` | bearer | Train a **candidate** (never promotes) |
+| POST | `/models/versions/{id}/promote` | **staff** | Promote to champion (gated, audited) |
+| POST | `/models/versions/{id}/rollback` | **staff** | Restore the replaced version |
+| POST | `/models/versions/{id}/reject` | **staff** | Retire a candidate permanently |
+| POST | `/models/versions/{id}/drift` | bearer | Compare recent features with the training reference |
+| GET | `/models/drift` | bearer | Open drift events |
+| POST | `/models/drift/{id}/acknowledge` | **staff** | Mark a drift event as reviewed |
+
+Training returns `201` with `status: candidate`. Promotion returns `422` with a reason when the
+out-of-sample gate fails; `force: true` (staff) overrides it and stamps `FORCED OVERRIDE` on the
+version.
+
 ## Reserved namespaces (implemented in later phases)
 
-`/markets`, `/instruments`, `/research`, `/ai`, `/models`, `/strategies`, `/signals`, `/trading`,
-`/orders`, `/positions`, `/portfolio`, `/risk`, `/wallet`, `/transactions`, `/analytics`,
-`/notifications`. The routes are intentionally absent in Phase 1 so no client can assume they exist.
+`/strategies`, `/signals`, `/trading`, `/orders`, `/positions`, `/portfolio`, `/risk`, `/wallet`,
+`/transactions`, `/analytics`, `/notifications`. These routes are intentionally absent so no client
+can assume they exist.

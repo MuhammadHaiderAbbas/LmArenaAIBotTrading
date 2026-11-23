@@ -325,7 +325,7 @@ def test_run_persists_every_finding_with_evidence(db_session) -> None:
 
     # All five implemented agents contribute, even when they have nothing.
     codes = {finding.agent_code for finding in run.findings}
-    assert codes == {"technical", "regime", "news", "portfolio", "quality"}
+    assert codes == {"technical", "regime", "news", "portfolio", "quality", "quantitative"}
     for finding in run.findings:
         assert finding.evidence, f"{finding.agent_code} produced no evidence row"
         assert finding.confidence_kind == ConfidenceKind.RULE_SCORE
@@ -501,8 +501,9 @@ def test_agent_registry_marks_unbuilt_agents_as_unimplemented(db_session) -> Non
 
     implemented = {agent.code for agent in db.query(Agent) if agent.implemented}
     not_implemented = {agent.code for agent in db.query(Agent) if not agent.implemented}
-    assert implemented == {"technical", "regime", "news", "portfolio", "quality"}
-    assert not_implemented == {"fundamental", "sentiment", "quantitative"}
+    # Phase 6 wired the quantitative agent to the champion-model registry.
+    assert implemented == {"technical", "regime", "news", "portfolio", "quality", "quantitative"}
+    assert not_implemented == {"fundamental", "sentiment"}
 
 
 def test_seed_agents_is_idempotent(db_session) -> None:

@@ -12,6 +12,7 @@
  */
 
 import { candlesForSymbol } from "./marketEngine";
+import { versionsFor } from "./modelEngine";
 import type {
   Agent,
   AgentRun,
@@ -111,12 +112,12 @@ export const DEMO_AGENTS: Agent[] = [
     name: "Quantitative Analyst",
     role: "quantitative",
     description: "Model forecasts with calibration and uncertainty from Phase 6 models.",
-    status: "shadow",
-    implemented: false,
+    status: "active",
+    implemented: true,
     deterministic: true,
     version: "1.0.0",
-    inputs: "Validated model outputs and feature sets",
-    outputs: "Forecasts, uncertainty, calibration evidence",
+    inputs: "Promoted model version, stored parameters, out-of-sample evaluation",
+    outputs: "Up-probability with baseline comparison and calibration caveats",
   },
 ];
 
@@ -483,6 +484,101 @@ export function portfolioFinding(): Finding {
   };
 }
 
+/**
+ * The Phase 6 agent: reports the champion model's forecast, or says there is no
+ * champion. It never turns a probability into a stance — converting one into a
+ * directional proposal needs a strategy layer with validated economics.
+ */
+export function quantitativeFinding(symbol: string): Finding {
+  const versions = versionsFor(symbol);
+  const champion = versions.find((version) => version.status === "champion") ?? null;
+
+  if (!champion) {
+    return {
+      agent_code: "quantitative",
+      ordinal: 5,
+      headline: "No champion model is registered for this instrument",
+      stance: "unknown",
+      confidence: 0,
+      confidence_kind: "uncalibrated",
+      facts: "Champion versions in registry: 0",
+      interpretation: "",
+      uncertainties: "",
+      limitations:
+        "No promoted model version covers this instrument. A candidate that has not passed the out-of-sample gate is not used for any commentary.",
+      data_available: false,
+      duration_ms: 3,
+      evidence: [
+        {
+          kind: "absence",
+          label: "champion model",
+          detail:
+            "No version has been promoted for this instrument. Candidates are inert until a human promotes one.",
+          value: null,
+          unit: "",
+          reference_id: null,
+          url: "",
+          observed_at: null,
+        },
+      ],
+    };
+  }
+
+  const outOfSample = champion.evaluations.find((evaluation) => evaluation.is_out_of_sample);
+  const edge = outOfSample?.edge_over_baseline ?? null;
+  const caveats: string[] = [];
+  if (edge === null || edge < 0.02) {
+    caveats.push(
+      edge !== null && edge < 0
+        ? `The model is ${Math.abs(edge).toFixed(3)} worse than the majority-class baseline out of sample; the probability carries no directional information.`
+        : "The measured edge over the majority-class baseline is within noise; the probability is not reliable as a directional signal.",
+    );
+  }
+
+  return {
+    agent_code: "quantitative",
+    ordinal: 5,
+    headline: "Champion model forecast, with caveats",
+    stance: "unknown",
+    confidence: 0.25,
+    confidence_kind: "uncalibrated",
+    facts: [
+      `Champion version v${champion.version} (${champion.model_code})`,
+      `Out-of-sample accuracy ${((outOfSample?.accuracy ?? 0) * 100).toFixed(1)}% vs baseline ${((outOfSample?.baseline_accuracy ?? 0) * 100).toFixed(1)}%`,
+      `Edge over majority-class baseline ${edge === null ? "—" : `${edge >= 0 ? "+" : ""}${edge.toFixed(3)}`}`,
+    ].join("\n"),
+    interpretation:
+      "This is a model output, not a recommendation. No stance is taken from it: the strategy layer arrives in Phase 7.",
+    uncertainties: caveats.join(" "),
+    limitations:
+      "Trained on a single instrument's price history; it knows nothing about news, positioning or macro.",
+    data_available: true,
+    duration_ms: 3,
+    evidence: [
+      {
+        kind: "computation",
+        label: "champion model",
+        detail: `logistic model ${champion.model_code} v${champion.version}`,
+        value: null,
+        unit: "",
+        reference_id: champion.id,
+        url: "",
+        observed_at: null,
+      },
+      {
+        kind: "computation",
+        label: "out-of-sample accuracy",
+        detail: "measured on a strictly forward time split, never a random one",
+        value: outOfSample?.accuracy ?? null,
+        unit: "ratio",
+        reference_id: null,
+        url: "",
+        observed_at: null,
+      },
+    ],
+  };
+}
+
 export function qualityFinding(): Finding {
   const state = "ok";
   return {
@@ -527,6 +623,7 @@ export function buildRun(input: DemoRunInput): AgentRun {
     newsFinding(input.symbol, input.claims ?? []),
     portfolioFinding(),
     qualityFinding(),
+    quantitativeFinding(input.symbol),
   ];
 
   const technical = findings[0];

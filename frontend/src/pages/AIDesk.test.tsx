@@ -65,7 +65,7 @@ describe("AI Desk screen", () => {
     expect(node.textContent).toContain("Technical Analyst");
     expect(node.textContent).toContain("Fundamental Analyst");
     expect(node.textContent).toContain("planned");
-    expect(node.textContent).toContain("5 of 8 built");
+    expect(node.textContent).toContain("6 of 8 built");
   });
 
   it("runs the specialists and renders findings with evidence", async () => {

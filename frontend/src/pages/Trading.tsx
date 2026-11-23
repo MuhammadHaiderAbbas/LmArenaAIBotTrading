@@ -16,7 +16,8 @@ export function Trading() {
     toast({
       tone: next === "stopped" ? "error" : "success",
       title: message,
-      description: "Phase 1 stub — no order router is connected and no capital is at risk.",
+      description:
+        "Paper engine control only — no order router is connected and no capital is at risk.",
     });
   };
 
@@ -37,8 +38,8 @@ export function Trading() {
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <Stat label="Environment" value="Paper" hint="Live trading disabled" tone="accent" />
         <Stat label="Active strategy" value={strategies.find((s) => s.id === strategy)?.name.split(" ")[0] ?? "—"} hint="Selected configuration" />
-        <Stat label="Proposals today" value={0} hint="Agent orchestration begins in Phase 5" />
-        <Stat label="Open positions" value={0} hint="Execution engine begins in Phase 8" />
+        <Stat label="Proposals today" value={0} hint="Live in the AI Desk: nothing is tradeable yet" />
+        <Stat label="Open positions" value={0} hint="Execution engine arrives in Phase 8" />
       </div>
 
       <div className="mt-4 grid gap-4 lg:grid-cols-3">
@@ -80,8 +81,8 @@ export function Trading() {
               >
                 <IconStop /> Stop
               </Button>
-              <Link to="/risk" className="ml-auto self-center text-xs font-medium text-accent-soft hover:underline">
-                Emergency controls live in the Risk Centre →
+              <Link to="/ai" className="ml-auto self-center text-xs font-medium text-accent-soft hover:underline">
+                Review proposals in the AI Desk →
               </Link>
             </div>
 
@@ -98,8 +99,10 @@ export function Trading() {
                 {[
                   ["Engine initialised", "Paper adapter ready · no broker connection", "now"],
                   ["Risk controller armed", "Nine deterministic limits loaded", "now"],
-                  ["Awaiting market data", "Phase 3 connects provider adapters", "pending"],
-                  ["Awaiting agent orchestration", "Phase 5 wires specialist agents", "pending"],
+                  ["Market data live", "Provider adapters ingesting candles and quality events", "now"],
+                  ["Agent orchestration armed", "Six specialists produce evidence-backed findings", "now"],
+                  ["Awaiting validated strategy", "Phase 7 turns findings into sized proposals", "pending"],
+                  ["Awaiting execution engine", "Phase 8 adds the order lifecycle and simulated fills", "pending"],
                 ].map(([title, detail, when]) => (
                   <li key={title} className="relative">
                     <span
@@ -119,7 +122,7 @@ export function Trading() {
           </div>
         </Panel>
 
-        <Panel title="Agent readiness" subtitle="What each specialist needs" bodyClassName="p-0">
+        <Panel title="Agent readiness" subtitle="Live specialist status lives in the AI Desk" bodyClassName="p-0">
           <ul className="divide-y divide-line/70">
             {agents.map((agent) => (
               <li key={agent.id} className="px-4 py-2.5">
@@ -137,7 +140,7 @@ export function Trading() {
       </div>
 
       <div className="mt-4 grid gap-4 lg:grid-cols-2">
-        <Panel title="Structured proposal format" subtitle="What an agent will submit from Phase 5">
+        <Panel title="Structured proposal format" subtitle="What the strategy layer will submit from Phase 7">
           <pre className="overflow-x-auto rounded-lg border border-line bg-surface-sunken p-4 font-mono text-[11px] leading-relaxed text-ink-muted">
 {`{
   "symbol": "GBPUSD",
@@ -164,11 +167,12 @@ export function Trading() {
         <Panel title="Why nothing is trading yet">
           <ul className="space-y-2.5 text-xs text-ink-muted">
             {[
-              ["No market data", "Phase 3 connects licensed price and volume feeds."],
-              ["No agents", "Phase 5 implements evidence-backed specialist findings."],
-              ["No validated models", "Phase 6 requires walk-forward, out-of-sample evidence."],
-              ["No execution", "Phase 8 adds the order lifecycle and simulated fills."],
-              ["No risk service", "Phase 9 makes the veto independent and auditable."],
+              ["Market data", "Ingesting candles with gap and staleness checks — done in Phase 3."],
+              ["Specialist agents", "Six evidence-backed specialists run per proposal — done in Phase 5."],
+              ["Model registry", "Candidates are compared out-of-sample and promoted by hand — done in Phase 6."],
+              ["Strategy layer", "Findings are not yet converted into sized proposals — Phase 7."],
+              ["Execution", "No order lifecycle or simulated fills yet — Phase 8."],
+              ["Risk service", "The independent, auditable veto arrives in Phase 9."],
             ].map(([title, detail]) => (
               <li key={title} className="rounded-md border border-line bg-surface-sunken px-3 py-2">
                 <p className="font-medium text-ink">{title}</p>

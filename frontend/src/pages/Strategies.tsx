@@ -13,7 +13,7 @@ export function Strategies() {
         eyebrow="Research to deployment"
         title="Strategies"
         description="A strategy only reaches deployment after backtesting, walk-forward validation and an out-of-sample review. Version history and rollback are mandatory."
-        actions={<Badge tone="muted">Phase 6 enables backtesting</Badge>}
+        actions={<Badge tone="muted">Backtesting arrives in Phase 7</Badge>}
       />
 
       <div className="grid gap-4 lg:grid-cols-3">
@@ -107,7 +107,7 @@ export function Strategies() {
         <Panel title="Version history" subtitle="Immutable strategy versions with evaluation records">
           <EmptyState
             title="No versions registered"
-            description="Version control activates with the strategy engine in Phase 6. Each version will pin its features, parameters and validation evidence."
+            description="Model versioning and rollback live in the Models screen. Strategy versions arrive with the strategy engine in Phase 7."
           />
         </Panel>
         <Panel title="Model family usage" subtitle="Deploy only when out-of-sample value is proven">

@@ -43,6 +43,17 @@ from app.models.market import (
     Timeframe,
     Venue,
 )
+from app.models.ml import (
+    DriftEvent,
+    DriftSeverity,
+    EvaluationKind,
+    FeatureSnapshot,
+    Model,
+    ModelEvaluation,
+    ModelFamily,
+    ModelStatus,
+    ModelVersion,
+)
 from app.models.operations import (
     AuditLog,
     IntegrationHealth,
@@ -73,6 +84,15 @@ from app.models.research import (
 )
 
 __all__ = [
+    "DriftEvent",
+    "DriftSeverity",
+    "EvaluationKind",
+    "FeatureSnapshot",
+    "Model",
+    "ModelEvaluation",
+    "ModelFamily",
+    "ModelStatus",
+    "ModelVersion",
     "Agent",
     "AgentFinding",
     "AgentRole",

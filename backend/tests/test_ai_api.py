@@ -16,7 +16,8 @@ def test_agents_are_listed_with_unbuilt_ones_marked(client, auth_headers) -> Non
     # The platform must not imply it has specialists it has not built.
     assert by_code["fundamental"]["implemented"] is False
     assert by_code["sentiment"]["implemented"] is False
-    assert by_code["quantitative"]["implemented"] is False
+    # Phase 6 implemented the quantitative agent against the model registry.
+    assert by_code["quantitative"]["implemented"] is True
     for agent in agents:
         assert agent["deterministic"] is True
 
@@ -128,7 +129,7 @@ def test_overview_counts_runs_and_refusals(client, auth_headers) -> None:
     assert overview["runs_total"] == 2
     assert overview["runs_refused"] == 2
     assert overview["agents_total"] == 8
-    assert overview["agents_implemented"] == 5
+    assert overview["agents_implemented"] == 6
     # The invariant the whole phase rests on.
     assert overview["tradeable_proposals"] == 0
     assert len(overview["latest_runs"]) == 2

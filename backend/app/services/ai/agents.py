@@ -115,6 +115,9 @@ class AgentContext:
     portfolio: dict[str, object] = field(default_factory=dict)
     regime_history: list[float] = field(default_factory=list)
     news_summary: dict[str, object] = field(default_factory=dict)
+    # A champion model's probability for the next bar, and the metadata needed to
+    # read it honestly. None means no champion exists for this instrument.
+    model_forecast: dict[str, object] | None = None
 
     @property
     def has_market(self) -> bool:
@@ -673,10 +676,158 @@ def data_quality_finding(context: AgentContext) -> Finding:
     )
 
 
+# ---------------------------------------------------------------- quantitative
+
+
+def quantitative_analyst(context: AgentContext) -> Finding:
+    """Reports a champion model's forecast, or says there is no champion.
+
+    This agent exists so Phase 6 is visible in the product rather than sitting in
+    a registry. It is deliberately conservative about what a probability means:
+
+    - it reports the number, the baseline it must beat, and the calibration slope;
+    - it refuses to convert a probability into a stance unless out-of-sample
+      calibration has been validated, which is a Phase 7 concern;
+    - when no champion exists it records absence, which is the normal state.
+    """
+    forecast = context.model_forecast
+    if not forecast:
+        return Finding(
+            agent_code="quantitative",
+            headline="No champion model is registered for this instrument",
+            data_available=False,
+            evidence=[
+                Evidence(
+                    kind=EvidenceKind.ABSENCE,
+                    label="champion model",
+                    detail=(
+                        "No promoted model version covers this instrument. A candidate that has "
+                        "not passed the out-of-sample gate is not used for any commentary."
+                    ),
+                )
+            ],
+            limitations=["Quantitative forecasts require a promoted model version."],
+        )
+
+    probability = float(forecast.get("probability") or 0.0)
+    edge = forecast.get("edge_over_baseline")
+    accuracy = forecast.get("out_of_sample_accuracy")
+    baseline = forecast.get("baseline_accuracy")
+    slope = forecast.get("calibration_slope")
+    rows = forecast.get("out_of_sample_rows", 0)
+    oos_auc = forecast.get("roc_auc")
+
+    facts = [
+        f"Up-probability for the next {forecast.get('horizon', 1)} bar: {probability:.3f}",
+        f"Champion version v{forecast.get('version')} ({forecast.get('model_code')})",
+        f"Out-of-sample rows {rows}",
+    ]
+    if accuracy is not None and baseline is not None:
+        facts.append(f"Out-of-sample accuracy {float(accuracy):.3f} vs baseline {float(baseline):.3f}")
+    if edge is not None:
+        facts.append(f"Edge over majority-class baseline {float(edge):+.3f}")
+    if oos_auc is not None:
+        facts.append(f"Out-of-sample ROC AUC {float(oos_auc):.3f}")
+    if slope is not None:
+        facts.append(f"Calibration slope {float(slope):.2f}")
+
+    evidence = [
+        Evidence(
+            kind=EvidenceKind.COMPUTATION,
+            label="up-probability",
+            detail=f"logistic model {forecast.get('model_code')} v{forecast.get('version')}",
+            value=probability,
+            unit="probability",
+            reference_id=str(forecast.get("version_id") or ""),
+            observed_at=context.now,
+        )
+    ]
+    if accuracy is not None:
+        evidence.append(
+            Evidence(
+                kind=EvidenceKind.COMPUTATION,
+                label="out-of-sample accuracy",
+                detail="measured on a strictly forward time split, never a random one",
+                value=float(accuracy),
+                unit="ratio",
+            )
+        )
+
+    uncertainties: list[str] = []
+    # A negative edge is worse than no edge, so it must be called out as loudly as
+    # a zero one. An earlier version tested |edge| < 0.02, which stayed silent on
+    # a model that was actively worse than the baseline.
+    if edge is None or float(edge) < 0.02:
+        if edge is not None and float(edge) < 0:
+            caveat = (
+                f"The model is {abs(float(edge)):.3f} *worse* than the majority-class "
+                "baseline out of sample; the probability carries no directional information."
+            )
+            label = "edge below baseline"
+        else:
+            caveat = (
+                "The measured edge over the majority-class baseline is within noise; the "
+                "probability is not reliable as a directional signal."
+            )
+            label = "edge within noise"
+        uncertainties.append(caveat)
+        evidence.append(
+            Evidence(
+                kind=EvidenceKind.COMPUTATION,
+                label=label,
+                detail="out-of-sample accuracy is not meaningfully above the baseline",
+            )
+        )
+    if slope is not None and float(slope) < 0.5:
+        uncertainties.append(
+            f"Calibration slope {float(slope):.2f} indicates over-confidence: a 0.70 "
+            "prediction does not mean a 70% chance."
+        )
+    if rows and int(rows) < 100:
+        uncertainties.append(f"Only {rows} out-of-sample rows; the estimate is imprecise.")
+
+    # A bare probability is misleading on its own. The caveat is decided by the
+    # evaluation, not by whether the uncertainty list happens to be empty: a model
+    # can clear the 0.02 edge floor and still be below the 0.52 AUC bar, and it
+    # must still read as caveated.
+    well_supported = bool(
+        uncertainties == []
+        and edge is not None
+        and float(edge) >= 0.02
+        and (oos_auc is None or float(oos_auc) >= 0.55)
+    )
+
+    return Finding(
+        agent_code="quantitative",
+        headline=(
+            f"Champion model gives {probability:.0%} probability of an up move"
+            if well_supported
+            else f"Champion model gives {probability:.0%} up-probability, with caveats"
+        ),
+        stance=Stance.UNKNOWN,
+        confidence=clamp(0.25 + max(0.0, float(edge or 0.0)) * 4),
+        confidence_kind=ConfidenceKind.UNCALIBRATED,
+        facts=facts,
+        interpretation=[
+            "This is a model output, not a recommendation. No stance is taken from it: "
+            "converting a probability into a directional proposal needs a strategy layer "
+            "with validated economics, which arrives in Phase 7."
+        ],
+        uncertainties=uncertainties,
+        limitations=[
+            "Trained on a single instrument's price history; it knows nothing about news, positioning or macro.",
+            "A probability above 0.5 is not a signal unless the edge survives costs and slippage.",
+        ],
+        evidence=evidence,
+        data_available=True,
+    )
+
+
 AGENTS = {
     "technical": technical_analyst,
     "regime": regime_analyst,
     "news": news_analyst,
     "portfolio": portfolio_analyst,
     "quality": data_quality_finding,
+    "quantitative": quantitative_analyst,
 }
