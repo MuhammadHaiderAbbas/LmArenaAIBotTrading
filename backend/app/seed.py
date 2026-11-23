@@ -19,6 +19,7 @@ from app.database.session import Base, SessionLocal, engine
 from app.models import Environment, TradingAccount, User, UserRole
 from app.models.identity import UserSettings
 from app.services import account_service, ledger_service
+from app.services.ai import orchestrator as ai_orchestrator
 from app.services.market import registry
 from app.services.research import registry as research_registry
 
@@ -100,6 +101,13 @@ def main() -> None:
 
         # Phase 3: instrument registry is declarative and idempotent, so it is
         # reconciled on every start rather than created once.
+        # Agent metadata is declared in code so the UI can distinguish built
+        # specialists from planned ones rather than showing a static list.
+        agent_result = ai_orchestrator.seed_agents(db)
+        logger.info(
+            "ai agents: %s created, %s updated", agent_result["created"], agent_result["updated"]
+        )
+
         # Research sources are declared in code for the same reason instruments
         # are: a fresh database and an existing one must converge.
         research = research_registry.seed_sources(db)

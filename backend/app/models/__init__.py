@@ -5,6 +5,19 @@ that `Base.metadata.create_all` and Alembic autogenerate see the whole schema.
 """
 
 from app.models.account import AccountBalance, AccountStatus, Environment, TradingAccount
+from app.models.ai import (
+    Agent,
+    AgentFinding,
+    AgentRole,
+    AgentRun,
+    AgentStatus,
+    ConfidenceKind,
+    EvidenceKind,
+    FindingEvidence,
+    RunStatus,
+    RunTrigger,
+    Stance,
+)
 from app.models.identity import User, UserRole, UserSession, UserSettings
 from app.models.ledger import (
     LedgerAccount,
@@ -60,6 +73,17 @@ from app.models.research import (
 )
 
 __all__ = [
+    "Agent",
+    "AgentFinding",
+    "AgentRole",
+    "AgentRun",
+    "AgentStatus",
+    "ConfidenceKind",
+    "EvidenceKind",
+    "FindingEvidence",
+    "RunStatus",
+    "RunTrigger",
+    "Stance",
     "ClaimVerdict",
     "DocumentEntity",
     "DocumentStatus",

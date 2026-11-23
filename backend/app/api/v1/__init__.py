@@ -2,7 +2,7 @@
 
 from fastapi import APIRouter
 
-from app.api.v1 import accounts, admin, auth, markets, research, system, users
+from app.api.v1 import accounts, admin, ai, auth, markets, research, system, users
 
 api_router = APIRouter()
 api_router.include_router(system.router)
@@ -11,4 +11,5 @@ api_router.include_router(users.router)
 api_router.include_router(accounts.router)
 api_router.include_router(markets.router)
 api_router.include_router(research.router)
+api_router.include_router(ai.router)
 api_router.include_router(admin.router)

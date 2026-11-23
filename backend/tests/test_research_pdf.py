@@ -134,7 +134,11 @@ def test_ingest_fetches_and_indexes_a_pdf_for_a_storage_permitted_source(
 
     from app.database.session import SessionLocal
     from app.integrations.research.base import FeedItem, FetchResult
-    from app.models.research import ResearchChunk, ResearchDocument, SourceKind, SourceRecord, TrustTier
+    from app.models.research import (
+        ResearchChunk,
+        ResearchDocument,
+        SourceRecord,
+    )
     from app.services.research import ingestion, registry
 
     db = SessionLocal()
