@@ -90,3 +90,19 @@ cp .env.example .env && docker compose up --build
 
 Or deploy the API to Render using `infrastructure/deployment/render.yaml`
 (API + managed Postgres, guardrails pinned to `false`).
+
+## Pages source must be `gh-pages`, not `main`
+
+This repository previously served Pages from the root of `main` with Jekyll. That renders
+`README.md` as the site — the public URL shows a document, not the product.
+
+Correct configuration (Settings → Pages):
+
+- **Source:** Deploy from a branch
+- **Branch:** `gh-pages` / `/ (root)`
+
+`gh-pages` contains the built bundle with correct `/LmArenaAIBotTrading/` asset paths.
+
+Until that settings change is made, `main` carries a root `index.html` that forwards to
+`docs/live/`, which is the same build with relative asset paths. Both routes land on the
+running app; the settings change is still preferred because it removes the extra hop.

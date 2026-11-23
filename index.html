@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="en-GB">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>AUREX AI — open the demo</title>
+    <meta name="description" content="AUREX AI — autonomous trading and financial intelligence platform. Paper trading only. Static demo." />
+    <!--
+      GitHub Pages for this repository is currently served from the root of `main`
+      with Jekyll, which would otherwise render the README at the site root. This
+      page forwards to the built demo instead, so the public URL opens the product.
+
+      Preferred fix (one click, needs repo admin):
+        Settings → Pages → Source: "Deploy from a branch" → Branch: gh-pages / (root)
+      Then this redirect can be deleted; `gh-pages` serves the app at the root.
+    -->
+    <meta http-equiv="refresh" content="0; url=./docs/live/" />
+    <link rel="canonical" href="./docs/live/" />
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%230B1220'/%3E%3Cpath d='M8 22l5-12 3 7 2-4 6 9' stroke='%234F8CFF' stroke-width='2.2' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E" />
+    <style>
+      :root { color-scheme: dark; }
+      body {
+        margin: 0; min-height: 100vh; display: grid; place-items: center;
+        background: #0b1220; color: #e6ecf5;
+        font: 15px/1.6 ui-sans-serif, -apple-system, "Segoe UI", Roboto, sans-serif;
+      }
+      main { max-width: 34rem; padding: 2rem; text-align: center; }
+      a { color: #4f8cff; }
+      p.small { color: #8ea0b8; font-size: 13px; }
+    </style>
+  </head>
+  <body>
+    <main>
+      <h1 style="font-size:1.25rem;letter-spacing:-0.01em">AUREX AI</h1>
+      <p>Opening the live demo…</p>
+      <p class="small">
+        If nothing happens, <a href="./docs/live/">open the demo manually</a>.
+        Paper trading only — no real money, no broker execution.
+      </p>
+    </main>
+    <script>
+      location.replace("./docs/live/");
+    </script>
+  </body>
+</html>
