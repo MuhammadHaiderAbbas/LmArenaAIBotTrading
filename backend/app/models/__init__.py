@@ -15,6 +15,21 @@ from app.models.ledger import (
     ReconciliationRecord,
     TransactionType,
 )
+from app.models.market import (
+    AssetClass,
+    DataQualityEvent,
+    IngestionRun,
+    Instrument,
+    InstrumentProvider,
+    InstrumentStatus,
+    MarketCandle,
+    MarketQuote,
+    QualityEventType,
+    QualitySeverity,
+    SessionState,
+    Timeframe,
+    Venue,
+)
 from app.models.operations import (
     AuditLog,
     IntegrationHealth,
@@ -25,6 +40,19 @@ from app.models.operations import (
 
 __all__ = [
     "AccountBalance",
+    "AssetClass",
+    "DataQualityEvent",
+    "IngestionRun",
+    "Instrument",
+    "InstrumentProvider",
+    "InstrumentStatus",
+    "MarketCandle",
+    "MarketQuote",
+    "QualityEventType",
+    "QualitySeverity",
+    "SessionState",
+    "Timeframe",
+    "Venue",
     "AccountStatus",
     "AuditLog",
     "Environment",

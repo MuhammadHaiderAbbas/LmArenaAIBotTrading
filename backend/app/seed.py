@@ -19,6 +19,7 @@ from app.database.session import Base, SessionLocal, engine
 from app.models import Environment, TradingAccount, User, UserRole
 from app.models.identity import UserSettings
 from app.services import account_service, ledger_service
+from app.services.market import registry
 
 logging.basicConfig(level=logging.INFO, format="%(levelname)s | %(message)s")
 logger = logging.getLogger("aurex.seed")
@@ -95,6 +96,16 @@ def main() -> None:
             ledger_service.open_account_with_funding(db, account=sandbox, amount=25_000)
             ledger_service.reconcile(db, sandbox)
             logger.info("created demo Strategy Sandbox account (USD 25,000 paper)")
+
+        # Phase 3: instrument registry is declarative and idempotent, so it is
+        # reconciled on every start rather than created once.
+        created = registry.seed_registry(db)
+        logger.info(
+            "market registry: %s venues, %s instruments, %s provider mappings",
+            created["venues"],
+            created["instruments"],
+            created["providers"],
+        )
 
         db.commit()
         logger.info("seed complete")
