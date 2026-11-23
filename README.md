@@ -27,6 +27,8 @@ ledger — persisted to `localStorage`.
 
 The demo is a product walkthrough, **not** a security boundary and holds no real value.
 
+![AUREX AI overview](docs/architecture/live-overview.png)
+
 ---
 
 ## What Phase 1 delivers
