@@ -20,6 +20,7 @@ from app.models import Environment, TradingAccount, User, UserRole
 from app.models.identity import UserSettings
 from app.services import account_service, ledger_service
 from app.services.market import registry
+from app.services.research import registry as research_registry
 
 logging.basicConfig(level=logging.INFO, format="%(levelname)s | %(message)s")
 logger = logging.getLogger("aurex.seed")
@@ -99,6 +100,14 @@ def main() -> None:
 
         # Phase 3: instrument registry is declarative and idempotent, so it is
         # reconciled on every start rather than created once.
+        # Research sources are declared in code for the same reason instruments
+        # are: a fresh database and an existing one must converge.
+        research = research_registry.seed_sources(db)
+        logger.info(
+            "research sources: %s created, %s updated (%s total)",
+            research["created"], research["updated"], research["total"],
+        )
+
         created = registry.seed_registry(db)
         logger.info(
             "market registry: %s venues, %s instruments, %s provider mappings",
