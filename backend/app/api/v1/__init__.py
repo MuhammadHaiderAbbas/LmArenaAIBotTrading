@@ -12,6 +12,7 @@ from app.api.v1 import (
     markets,
     models,
     operations,
+    readiness,
     research,
     risk,
     strategies,
@@ -33,4 +34,5 @@ api_router.include_router(execution.router)
 api_router.include_router(risk.router)
 api_router.include_router(analytics.router)
 api_router.include_router(operations.router)
+api_router.include_router(readiness.router)
 api_router.include_router(admin.router)

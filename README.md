@@ -1,6 +1,6 @@
 # AUREX AI — Autonomous Trading & Financial Intelligence Platform
 
-**Version 0.1.0 · Phases 1–11** · paper trading only · no real money · no broker execution
+**Version 0.1.0 · Phases 1–12 (blueprint complete)** · paper trading only · no real money · no broker execution
 
 AUREX AI is a multi-market quantitative trading and financial research platform. It combines
 market-data ingestion, specialist AI research agents, quantitative models, strategy evaluation,
@@ -8,7 +8,7 @@ portfolio simulation, deterministic risk controls and automated order execution 
 goal of *identifying statistically defensible opportunities, explaining its reasoning and declining
 to trade when evidence is insufficient*.
 
-> **This repository currently contains Phases 1–11 (Foundation, Accounts, Market Data, Research AI, AI Desk, Model Engineering, Backtesting, Paper Execution, Risk Engine, Analytics, Security & Reliability).**
+> **This repository contains all twelve blueprint phases (Foundation, Accounts, Market Data, Research AI, AI Desk, Model Engineering, Backtesting, Paper Execution, Risk Engine, Analytics, Security & Reliability, Readiness).**
 > There is no live trading, no broker connection, no payment processing, no customer money and no
 > performance claim anywhere in this codebase. Scope boundaries: [`phase-1.md`](docs/architecture/phase-1.md),
 > [`phase-2.md`](docs/architecture/phase-2.md), [`phase-3.md`](docs/architecture/phase-3.md),
@@ -16,7 +16,7 @@ to trade when evidence is insufficient*.
 > [`phase-6.md`](docs/architecture/phase-6.md), [`phase-7.md`](docs/architecture/phase-7.md),
 > [`phase-8.md`](docs/architecture/phase-8.md), [`phase-9.md`](docs/architecture/phase-9.md),
 > [`phase-10.md`](docs/architecture/phase-10.md),
-> [`phase-11.md`](docs/architecture/phase-11.md).
+> [`phase-11.md`](docs/architecture/phase-11.md), [`phase-12.md`](docs/architecture/phase-12.md).
 
 ---
 
@@ -40,7 +40,7 @@ The demo is a product walkthrough, **not** a security boundary and holds no real
 
 ---
 
-## What Phases 1–11 deliver
+## What Phases 1–12 deliver
 
 | Area | Delivered |
 | --- | --- |
@@ -65,7 +65,7 @@ The demo is a product walkthrough, **not** a security boundary and holds no real
 | AI agents (P5) | 6 deterministic specialists (technical, regime, news, portfolio, quality, quantitative); 2 registered as explicitly unbuilt |
 | Orchestrator (P5) | Structured findings with evidence-or-absence, conflict detection, refusal when evidence is thin |
 | AI Desk UI (P5) | Findings with facts/interpretation/uncertainty split, confidence labelled as a rule score, blocked reason shown |
-| DX | Docker Compose (Postgres + Redis + API + web), seed script, 480 backend + 255 frontend tests; CI workflow in `docs/deployment/CI_WORKFLOWS.md` |
+| DX | Docker Compose (Postgres + Redis + API + web), seed script, 527 backend + 285 frontend tests; CI workflow in `docs/deployment/CI_WORKFLOWS.md` |
 
 | Model engineering (P6) | 15 leakage-tested features, forward-only time splits, numpy logistic training, 4-fold walk-forward |
 | Evaluation (P6) | Per-slice metrics with `is_out_of_sample`, majority-class baseline, edge over baseline, Brier, calibration slope and reliability bins |
@@ -97,7 +97,18 @@ The demo is a product walkthrough, **not** a security boundary and holds no real
 | Secrets at rest (P11) | Encrypt-then-MAC envelope for persisted secrets; the TOTP secret is never stored readable |
 | Backups & recovery (P11) | Backup, checksum manifest, restore-into-scratch and a recovery drill that fails loudly: `python -m app.cli drill` |
 | Operational monitoring (P11) | Eight checks — stale data, quality events, order bursts, rejection rate, breakers, drift, audit chain, reconciliation — read-only, worst-of status |
+| Broker sandbox (P12) | Handshake, clock probe, submit and disconnect against a sandbox venue, with latency and skew recorded per session. **No live adapter exists** — `require_sandbox` raises before a credential is read |
+| Compliance assessment (P12) | 24 items across blueprint §13's UK categories, every status resolved from evidence in the running system, every blocker naming what would unblock it |
+| Release gate (P12) | A stage machine over the three business stages; blocking vs informational checks are data; advancing to live is refused and audited |
+| Readiness UI (P12) | `/readiness`: live-ready **NO** as the headline, the blocking list, the gate, and what the page refuses to claim |
 | Operations UI (P11) | `/operations`: finding messages rather than a green tick, the sealed trail, the head digest, and what the page refuses to claim |
+
+### Explicitly **not** in Phase 12
+
+No live trading and no path to it, no real broker contract, no regulatory opinion, no
+counsel, no KYC provider, no load test and no point-in-time recovery. The assessment
+returns `live_ready: false` with eight blocking items, each naming its unblocking
+condition — see [`phase-12.md`](docs/architecture/phase-12.md) §6.
 
 ### Explicitly **not** in Phase 11
 

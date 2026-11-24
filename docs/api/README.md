@@ -249,6 +249,26 @@ When MFA is on, `POST /auth/login` with a correct password returns
 `401 {"detail": ..., "mfa_required": true, "challenge_token": "..."}` and **no tokens**.
 The challenge token is only accepted by `/auth/mfa/verify`.
 
+## Readiness (Phase 12)
+
+| Method | Path | Auth | Purpose |
+| --- | --- | --- | --- |
+| GET | `/brokers` | bearer | Sandbox adapter catalogue + the statement that no live adapter exists |
+| GET | `/brokers/connections` | bearer | The caller's connections, with their session log |
+| POST | `/brokers/connect` | bearer | Sandbox handshake. `mode` other than `sandbox` → **403** before any credential is stored |
+| POST | `/brokers/{broker}/probe` | bearer | Re-probe latency and clock skew; recorded |
+| POST | `/brokers/{broker}/disconnect` | bearer | Disconnect and **erase** the stored credentials |
+| POST | `/brokers/sandbox-orders` | bearer | Send an order to a sandbox venue. Never fills, never moves money, creates no paper order |
+| GET | `/readiness/compliance` | staff | The full assessment: 24 items, evidence, status, blocking list |
+| GET | `/readiness/compliance/summary` | staff | Counts by category and the blocking count |
+| GET | `/readiness/stages` | bearer | The three business stages with their preconditions |
+| GET | `/readiness/release/gate` | staff | Pass/fail per check for the current paper release |
+| POST | `/readiness/release/advance` | staff | Attempt a stage transition. `stage_3_live` → **403**, audited |
+
+Gate checks carry `blocking: true|false`. A passing gate still reports
+`compliance_blocking_count`, because the items blocking *live* are not the items blocking
+the paper release — and collapsing the two would let a green gate read as "ready".
+
 ## Reserved namespaces (implemented in later phases)
 
 `/signals`, `/trading`, `/orders`, `/portfolio`, `/wallet`,

@@ -32,6 +32,13 @@ import * as demoRisk from "../lib/demo/riskEngine";
 import * as demoAnalytics from "../lib/demo/analyticsEngine";
 import type { PerformanceReport } from "../lib/analyticsTypes";
 import * as demoMonitoring from "../lib/demo/monitoringEngine";
+import * as demoReadiness from "../lib/demo/readinessEngine";
+import type {
+  BrokerCatalogue,
+  ComplianceAssessment,
+  ReleaseGate,
+  StageReport,
+} from "../lib/readinessTypes";
 import type {
   ChainVerification,
   HealthReport,
@@ -390,6 +397,26 @@ export const api = {
       return order;
     }
     return http<Order>(`/execution/orders/${orderId}/cancel`, { method: "POST" });
+  },
+
+  async readinessCompliance(): Promise<ComplianceAssessment> {
+    if (IS_DEMO) return demoReadiness.assessment();
+    return http<ComplianceAssessment>("/readiness/compliance");
+  },
+
+  async readinessGate(): Promise<ReleaseGate> {
+    if (IS_DEMO) return demoReadiness.releaseGate();
+    return http<ReleaseGate>("/readiness/release/gate");
+  },
+
+  async readinessStages(): Promise<StageReport> {
+    if (IS_DEMO) return demoReadiness.stageReport();
+    return http<StageReport>("/readiness/stages");
+  },
+
+  async readinessBrokers(): Promise<BrokerCatalogue> {
+    if (IS_DEMO) return demoReadiness.brokerCatalogue();
+    return http<BrokerCatalogue>("/brokers");
   },
 
   async operationsHealth(): Promise<HealthReport> {

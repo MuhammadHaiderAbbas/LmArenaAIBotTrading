@@ -18,6 +18,7 @@ from app.models.ai import (
     RunTrigger,
     Stance,
 )
+from app.models.broker import BrokerConnection, BrokerSession
 from app.models.execution import (
     ExecutionEvent,
     ExecutionEventType,
@@ -216,4 +217,6 @@ __all__ = [
     "RiskRule",
     "AuditSeal",
     "MFARecoveryCode",
+    "BrokerConnection",
+    "BrokerSession",
 ]

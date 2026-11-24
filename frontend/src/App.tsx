@@ -18,6 +18,7 @@ import { Wallet } from "./pages/Wallet";
 import { History } from "./pages/History";
 import { Analytics } from "./pages/Analytics";
 import { Operations } from "./pages/Operations";
+import { Readiness } from "./pages/Readiness";
 import { Settings } from "./pages/Settings";
 import { Admin } from "./pages/Admin";
 import { IS_DEMO } from "./services/api";
@@ -55,6 +56,7 @@ export function App() {
                 <Route path="/history" element={<History />} />
                 <Route path="/analytics" element={<Analytics />} />
                 <Route path="/operations" element={<Operations />} />
+                <Route path="/readiness" element={<Readiness />} />
                 <Route path="/settings" element={<Settings />} />
                 <Route path="/admin" element={<Admin />} />
               </Route>

@@ -17,6 +17,7 @@ import { AIDesk } from "./pages/AIDesk";
 import { Admin } from "./pages/Admin";
 import { Analytics } from "./pages/Analytics";
 import { Operations } from "./pages/Operations";
+import { Readiness } from "./pages/Readiness";
 import { Execution } from "./pages/Execution";
 import { History } from "./pages/History";
 import { Markets } from "./pages/Markets";
@@ -88,6 +89,7 @@ const PAGES: [string, ReactElement][] = [
   ["History", <History />],
   ["Analytics", <Analytics />],
   ["Operations", <Operations />],
+  ["Readiness", <Readiness />],
   ["Settings", <Settings />],
   ["Admin", <Admin />],
 ];

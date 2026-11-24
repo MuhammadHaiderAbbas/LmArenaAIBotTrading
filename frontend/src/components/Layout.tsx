@@ -12,6 +12,7 @@ import {
   IconBell,
   IconBot,
   IconCandles,
+  IconCheck,
   IconChart,
   IconCpu,
   IconFlask,
@@ -45,6 +46,7 @@ export const NAV_ITEMS: NavItem[] = [
   { to: "/history", label: "Trade History", icon: <IconHistory />, phase: 8 },
   { to: "/analytics", label: "Analytics", icon: <IconChart />, phase: 10 },
   { to: "/operations", label: "Operations", icon: <IconShield />, phase: 11 },
+  { to: "/readiness", label: "Readiness", icon: <IconCheck />, phase: 12 },
   { to: "/settings", label: "Settings & Admin", icon: <IconSettings />, requiresAdmin: false },
 ];
 
