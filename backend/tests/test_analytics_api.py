@@ -142,7 +142,10 @@ def test_trade_limit_is_applied(client, auth_headers) -> None:
     response = client.get("/api/v1/analytics/performance?trade_limit=1", headers=headers)
     assert response.status_code == 200
     assert len(response.json()["trades"]) <= 1
-    assert client.get("/api/v1/analytics/performance?trade_limit=0", headers=headers).status_code == 422
+    assert (
+        client.get("/api/v1/analytics/performance?trade_limit=0", headers=headers).status_code
+        == 422
+    )
 
 
 def test_every_metric_carries_a_definition_over_http(client, auth_headers) -> None:

@@ -44,6 +44,47 @@ Errors return `{"detail": "<message>"}`; validation failures additionally includ
 | POST | `/accounts/{id}/withdraw` | bearer | Virtual withdrawal (paper only, cannot exceed cash) |
 | POST | `/accounts/{id}/reconcile` | bearer | Compare derived cash with the cached balance |
 
+## Market data (Phase 3)
+
+| Method | Path | Auth | Purpose |
+| --- | --- | --- | --- |
+| GET | `/markets/overview` | bearer | Market-wide summary: instrument count, freshness, provider health |
+| GET | `/markets/instruments` | bearer | Instrument registry (filter by asset class, venue, tradable) |
+| GET | `/markets/instruments/{symbol}` | bearer | One instrument with its venue and provider mappings |
+| GET | `/markets/{symbol}/candles` | bearer | OHLCV series for a timeframe, with staleness flag |
+| GET | `/markets/{symbol}/indicators` | bearer | Deterministic indicators computed from stored bars |
+| GET | `/markets/venues` | bearer | Venues and their asset classes |
+| GET | `/markets/providers` | bearer | Provider health records: last success, error, latency |
+| GET | `/markets/ingestion-runs` | bearer | Ingestion history with rows written per provider |
+| GET | `/markets/quality/events` | bearer | Data-quality events (gaps, stale, outliers, duplicates) |
+| GET | `/markets/quality/summary` | bearer | Quality counts per provider and severity |
+| POST | `/markets/sync` | bearer | Trigger an ingestion run (rate limited) |
+| POST | `/markets/registry/seed` | admin | Idempotently seed venues, instruments and provider mappings |
+
+Prices are returned with their `open_time` and an `is_stale` flag; a client must not treat
+a stale series as current. See [`phase-3.md`](../architecture/phase-3.md).
+
+## Research (Phase 4)
+
+| Method | Path | Auth | Purpose |
+| --- | --- | --- | --- |
+| GET | `/research/overview` | bearer | Corpus size, sources, report counts |
+| GET | `/research/sources` | bearer | Registered ingestion sources |
+| POST | `/research/sources/seed` | admin | Idempotently seed the source catalogue |
+| POST | `/research/ingest` | bearer | Ingest a document from a source (rate limited) |
+| GET | `/research/documents` | bearer | Document list with source and hash |
+| GET | `/research/documents/{document_id}` | bearer | Document metadata and extracted text |
+| GET | `/research/documents/{document_id}/chunks` | bearer | Retrieval chunks for the document |
+| GET | `/research/documents/{document_id}/entities` | bearer | Extracted entities (tickers, orgs, dates) |
+| GET | `/research/search` | bearer | Retrieval over the corpus with source citations |
+| GET | `/research/reports` | bearer | Generated reports |
+| POST | `/research/reports` | bearer | Generate a source-linked report |
+| GET | `/research/reports/{report_id}` | bearer | One report with its citations |
+| GET | `/research/inspection/scan` | bearer | Run the prompt-injection / unsafe-content scan on text |
+
+Every report carries its sources. A claim without a citation is not stored as a finding.
+See [`phase-4.md`](../architecture/phase-4.md).
+
 ## Administration (role: admin)
 
 | Method | Path | Purpose |
@@ -80,35 +121,13 @@ curl -X POST http://localhost:8000/api/v1/accounts/<id>/deposit \
 curl http://localhost:8000/api/v1/accounts/<id>/ledger -H "Authorization: Bearer $TOKEN"
 ```
 
-## Market data
-
-| Method | Path | Auth | Purpose |
-| --- | --- | --- | --- |
-| GET | `/markets/instruments` | bearer | Registry of venues, instruments and specs |
-| GET | `/markets/{symbol}/candles` | bearer | OHLCV series for a timeframe |
-| GET | `/markets/{symbol}/indicators` | bearer | SMA/EMA/RSI/MACD/ATR/Bollinger snapshot |
-| GET | `/markets/{symbol}/quality` | bearer | Gaps, duplicates, outliers and staleness |
-| POST | `/markets/sync` | staff | Pull candles from the provider into the database |
-| POST | `/markets/reseed` | staff | Re-seed the instrument registry |
-
-## Research lab
-
-| Method | Path | Auth | Purpose |
-| --- | --- | --- | --- |
-| GET | `/research/documents` | bearer | Ingested documents with trust tier |
-| POST | `/research/documents` | bearer | Ingest text, URL or PDF |
-| GET | `/research/claims` | bearer | Extracted claims and their verdicts |
-| POST | `/research/verify` | bearer | Verify a claim against the corpus |
-| GET | `/research/reports` | bearer | Generated evidence reports |
-| POST | `/research/reports` | bearer | Compose a report from verified claims |
-
-(12 routes in total; see `/openapi.json` for the full list.)
-
 ## AI orchestration
 
 | Method | Path | Auth | Purpose |
 | --- | --- | --- | --- |
 | GET | `/ai/agents` | bearer | Specialist registry, with `implemented` flags |
+| GET | `/ai/proposals` | bearer | Trade proposals, always with `tradeable: false` and the reason |
+| POST | `/ai/agents/seed` | admin | Idempotently seed the specialist agent roster |
 | GET | `/ai/overview` | bearer | Run counters, refusals and tradeable proposals |
 | GET | `/ai/runs` | bearer | Recent runs, optionally filtered by symbol |
 | POST | `/ai/run` | bearer | Run the specialists for one instrument |
@@ -164,6 +183,7 @@ sets `live_eligible`.
 | GET | `/execution/orders` | bearer | Recent orders, filterable by status |
 | GET | `/execution/orders/{id}` | bearer | One order with its fills and lifecycle events |
 | POST | `/execution/orders/{id}/cancel` | bearer | Cancel a resting order |
+| GET | `/execution/events` | bearer | Order lifecycle events for the account |
 | GET | `/execution/positions` | bearer | Open or closed positions, marked to the latest close |
 | GET | `/execution/positions/{id}` | bearer | One position with unrealised percentage |
 | GET | `/execution/overview` | bearer | Equity, cash, costs, rejection rate, reconciliation report |

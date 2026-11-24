@@ -366,6 +366,14 @@ def quality_events(
 
 @router.get("/providers", response_model=list[ProviderHealth])
 def provider_health(db: DbSession, _: CurrentUser) -> list[ProviderHealth]:
+    """Provider health with provenance.
+
+    A provider named `synthetic` serves generated bars. It is reported here rather than
+    hidden so that "where did this price come from?" has an answer on the same screen as
+    "is the feed healthy?".
+    """
+    from app.integrations.providers.synthetic import SYNTHETIC_NOTICE
+
     results: list[ProviderHealth] = []
     for name, provider in ingestion.PROVIDERS.items():
         healthy, message = provider.health()
@@ -377,6 +385,7 @@ def provider_health(db: DbSession, _: CurrentUser) -> list[ProviderHealth]:
             )
             or 0
         )
+        message = message if name != "synthetic" else SYNTHETIC_NOTICE
         results.append(
             ProviderHealth(
                 provider=name,

@@ -149,7 +149,9 @@ def test_a_stale_market_refuses_the_order_and_says_so(client, auth_headers) -> N
     assert order["fills"] == []
 
 
-def test_buy_then_sell_closes_the_position_and_keeps_the_ledger_balanced(client, auth_headers) -> None:
+def test_buy_then_sell_closes_the_position_and_keeps_the_ledger_balanced(
+    client, auth_headers
+) -> None:
     from app.database.session import SessionLocal
 
     db = SessionLocal()
@@ -277,9 +279,7 @@ def test_limit_order_rests_and_can_be_cancelled(client, auth_headers) -> None:
     assert order["status"] == "submitted"
     assert order["fills"] == []
 
-    cancelled = client.post(
-        f"/api/v1/execution/orders/{order['id']}/cancel", headers=headers
-    )
+    cancelled = client.post(f"/api/v1/execution/orders/{order['id']}/cancel", headers=headers)
     assert cancelled.status_code == 200
     assert cancelled.json()["status"] == "cancelled"
 
@@ -302,7 +302,9 @@ def test_orders_are_scoped_to_their_owner(client, auth_headers) -> None:
     ).json()
 
     intruder = auth_headers("intruder@aurex.ai")
-    assert client.get(f"/api/v1/execution/orders/{order['id']}", headers=intruder).status_code == 404
+    assert (
+        client.get(f"/api/v1/execution/orders/{order['id']}", headers=intruder).status_code == 404
+    )
     assert client.get("/api/v1/execution/orders", headers=intruder).json() == []
 
 

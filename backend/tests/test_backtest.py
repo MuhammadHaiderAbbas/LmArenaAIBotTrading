@@ -53,8 +53,19 @@ def test_a_signal_is_filled_at_the_next_bar_not_the_current_one() -> None:
     )
     ts = stamps(4)
     # Buy signal on bar 0, flat afterwards.
-    signals = [Signal(Direction.LONG, "test"), Signal(Direction.FLAT), Signal(Direction.FLAT), Signal(Direction.FLAT)]
-    result = simulator.simulate(bars, ts, signals, simulator.CostModel(spread_bps=0, commission_bps=0, slippage_bps=0), warmup_bars=0)
+    signals = [
+        Signal(Direction.LONG, "test"),
+        Signal(Direction.FLAT),
+        Signal(Direction.FLAT),
+        Signal(Direction.FLAT),
+    ]
+    result = simulator.simulate(
+        bars,
+        ts,
+        signals,
+        simulator.CostModel(spread_bps=0, commission_bps=0, slippage_bps=0),
+        warmup_bars=0,
+    )
     assert result.trades
     first = result.trades[0]
     # Bar 1's open is 101, not bar 0's close of 100.
@@ -102,10 +113,18 @@ def test_costs_make_a_trade_worse_than_no_costs() -> None:
     ts = stamps(120)
     signals = rules.signals_for("trend_ma_v1", bars)
     free = simulator.simulate(
-        bars, ts, signals, simulator.CostModel(spread_bps=0, commission_bps=0, slippage_bps=0), warmup_bars=60
+        bars,
+        ts,
+        signals,
+        simulator.CostModel(spread_bps=0, commission_bps=0, slippage_bps=0),
+        warmup_bars=60,
     )
     costly = simulator.simulate(
-        bars, ts, signals, simulator.CostModel(spread_bps=20, commission_bps=10, slippage_bps=10), warmup_bars=60
+        bars,
+        ts,
+        signals,
+        simulator.CostModel(spread_bps=20, commission_bps=10, slippage_bps=10),
+        warmup_bars=60,
     )
     free_net = sum(trade.net_pnl for trade in free.trades)
     costly_net = sum(trade.net_pnl for trade in costly.trades)
@@ -160,7 +179,13 @@ def test_a_stop_is_hit_when_the_low_touches_it_even_if_the_close_recovers() -> N
         volumes=[1, 1, 1, 1, 1],
     )
     ts = stamps(5)
-    signals = [Signal(Direction.LONG), Signal(Direction.LONG), Signal(Direction.LONG), Signal(Direction.LONG), Signal(Direction.LONG)]
+    signals = [
+        Signal(Direction.LONG),
+        Signal(Direction.LONG),
+        Signal(Direction.LONG),
+        Signal(Direction.LONG),
+        Signal(Direction.LONG),
+    ]
     result = simulator.simulate(
         bars,
         ts,
@@ -193,7 +218,9 @@ def test_the_benchmark_is_never_stopped_out() -> None:
 
 
 def test_gate_refuses_a_sample_that_is_too_small() -> None:
-    passed, reason = simulator.judge({"trades": 4, "net_return": 0.5, "baseline_return": 0.0, "edge_over_baseline": 0.5})
+    passed, reason = simulator.judge(
+        {"trades": 4, "net_return": 0.5, "baseline_return": 0.0, "edge_over_baseline": 0.5}
+    )
     assert passed is False
     assert "at least 20" in reason
 
@@ -208,8 +235,14 @@ def test_gate_refuses_a_negative_net_return() -> None:
 
 def test_gate_refuses_a_strategy_that_loses_to_buy_and_hold() -> None:
     passed, reason = simulator.judge(
-        {"trades": 40, "net_return": 0.10, "baseline_return": 0.25, "edge_over_baseline": -0.15,
-         "max_drawdown": -0.05, "sharpe": 1.2}
+        {
+            "trades": 40,
+            "net_return": 0.10,
+            "baseline_return": 0.25,
+            "edge_over_baseline": -0.15,
+            "max_drawdown": -0.05,
+            "sharpe": 1.2,
+        }
     )
     assert passed is False
     assert "buy-and-hold" in reason
@@ -217,21 +250,39 @@ def test_gate_refuses_a_strategy_that_loses_to_buy_and_hold() -> None:
 
 def test_gate_refuses_excessive_drawdown_and_weak_sharpe() -> None:
     passed, _ = simulator.judge(
-        {"trades": 40, "net_return": 0.3, "baseline_return": 0.0, "edge_over_baseline": 0.3,
-         "max_drawdown": -0.40, "sharpe": 1.5}
+        {
+            "trades": 40,
+            "net_return": 0.3,
+            "baseline_return": 0.0,
+            "edge_over_baseline": 0.3,
+            "max_drawdown": -0.40,
+            "sharpe": 1.5,
+        }
     )
     assert passed is False
     passed, _ = simulator.judge(
-        {"trades": 40, "net_return": 0.3, "baseline_return": 0.0, "edge_over_baseline": 0.3,
-         "max_drawdown": -0.05, "sharpe": 0.1}
+        {
+            "trades": 40,
+            "net_return": 0.3,
+            "baseline_return": 0.0,
+            "edge_over_baseline": 0.3,
+            "max_drawdown": -0.05,
+            "sharpe": 0.1,
+        }
     )
     assert passed is False
 
 
 def test_gate_passes_a_genuinely_good_result() -> None:
     passed, reason = simulator.judge(
-        {"trades": 60, "net_return": 0.18, "baseline_return": 0.05, "edge_over_baseline": 0.13,
-         "max_drawdown": -0.08, "sharpe": 1.1}
+        {
+            "trades": 60,
+            "net_return": 0.18,
+            "baseline_return": 0.05,
+            "edge_over_baseline": 0.13,
+            "max_drawdown": -0.08,
+            "sharpe": 1.1,
+        }
     )
     assert passed is True
     assert "buy-and-hold" in reason
@@ -250,9 +301,20 @@ def test_metrics_are_complete_and_consistent() -> None:
         baseline_return=0.05,
     )
     for key in (
-        "trades", "win_rate", "profit_factor", "net_return", "baseline_return",
-        "edge_over_baseline", "sharpe", "sortino", "max_drawdown", "exposure",
-        "turnover", "average_bars_held", "verdict", "passes_gate",
+        "trades",
+        "win_rate",
+        "profit_factor",
+        "net_return",
+        "baseline_return",
+        "edge_over_baseline",
+        "sharpe",
+        "sortino",
+        "max_drawdown",
+        "exposure",
+        "turnover",
+        "average_bars_held",
+        "verdict",
+        "passes_gate",
     ):
         assert key in metrics
     assert metrics["max_drawdown"] <= 0
@@ -269,7 +331,10 @@ def test_all_registered_strategies_emit_one_signal_per_bar() -> None:
     for code in rules.REGISTRY:
         signals = rules.signals_for(code, bars)
         assert len(signals) == len(bars), code
-        assert all(signal.direction in {Direction.LONG, Direction.SHORT, Direction.FLAT} for signal in signals)
+        assert all(
+            signal.direction in {Direction.LONG, Direction.SHORT, Direction.FLAT}
+            for signal in signals
+        )
 
 
 def test_strategies_warm_up_before_signalling() -> None:
@@ -306,4 +371,6 @@ def test_simulation_refuses_a_series_shorter_than_the_warmup() -> None:
 
 def test_mismatched_inputs_are_rejected() -> None:
     with pytest.raises(ValueError, match="same length"):
-        simulator.simulate(series(10), stamps(5), [Signal(Direction.LONG)] * 10, simulator.CostModel())
+        simulator.simulate(
+            series(10), stamps(5), [Signal(Direction.LONG)] * 10, simulator.CostModel()
+        )

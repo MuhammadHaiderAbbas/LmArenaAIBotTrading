@@ -41,12 +41,24 @@ from app.models.market import (
 )
 from app.services.market import quality
 
+# The default map. `synthetic` is deliberately absent: offline development data must be
+# opted into per call, never silently selected by routing.
 PROVIDERS: dict[str, MarketDataProvider] = {
     "kraken": KrakenProvider(),
     "yahoo": YahooProvider(),
     "frankfurter": FrankfurterProvider(),
     "twelvedata": TwelveDataProvider(),
 }
+
+
+# Opt-in registry for the offline provider. Kept separate so a production install that
+# never asks for it cannot accidentally ingest generated bars.
+OPT_IN_PROVIDERS: dict[str, MarketDataProvider] = {}
+
+
+def register_opt_in(name: str, provider: MarketDataProvider) -> None:
+    OPT_IN_PROVIDERS[name] = provider
+    PROVIDERS[name] = provider
 
 
 def get_provider(name: str) -> MarketDataProvider:

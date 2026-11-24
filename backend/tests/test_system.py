@@ -4,12 +4,14 @@ from __future__ import annotations
 
 from fastapi.testclient import TestClient
 
+from app.core import release
 from app.core.config import settings
 
 
 def test_root_identifies_phase(client: TestClient) -> None:
     body = client.get("/").json()
-    assert body["phase"] == "Phase 11 — Security & reliability"
+    assert body["phase"] == release.PHASE_NAME
+    assert body["phases_complete"] == 12
     assert body["name"] == settings.PROJECT_NAME
 
 

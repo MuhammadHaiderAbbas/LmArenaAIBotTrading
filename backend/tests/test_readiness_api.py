@@ -53,7 +53,9 @@ def test_connecting_twice_updates_one_row(client, auth_headers) -> None:
     headers = auth_headers()
     connect(client, headers)
     connect(client, headers, label="second")
-    assert len(client.get(f"{BASE}/brokers/connections", headers=headers).json()["connections"]) == 1
+    assert (
+        len(client.get(f"{BASE}/brokers/connections", headers=headers).json()["connections"]) == 1
+    )
 
 
 def test_withdrawal_permission_is_recorded(client, auth_headers) -> None:
@@ -118,7 +120,13 @@ def test_a_sandbox_order_is_accepted_and_does_not_fill(client, auth_headers) -> 
     body = client.post(
         f"{BASE}/brokers/sandbox-orders",
         headers=headers,
-        json={"broker": "simulated", "client_order_id": "c-1", "symbol": "GBP/USD", "side": "buy", "quantity": 10},
+        json={
+            "broker": "simulated",
+            "client_order_id": "c-1",
+            "symbol": "GBP/USD",
+            "side": "buy",
+            "quantity": 10,
+        },
     ).json()
     assert body["accepted"] is True
     assert body["filled"] is False
@@ -129,7 +137,13 @@ def test_a_sandbox_order_needs_a_connection_first(client, auth_headers) -> None:
     response = client.post(
         f"{BASE}/brokers/sandbox-orders",
         headers=auth_headers(),
-        json={"broker": "simulated", "client_order_id": "c-2", "symbol": "GBP/USD", "side": "buy", "quantity": 1},
+        json={
+            "broker": "simulated",
+            "client_order_id": "c-2",
+            "symbol": "GBP/USD",
+            "side": "buy",
+            "quantity": 1,
+        },
     )
     assert response.status_code == 409
 
@@ -142,7 +156,13 @@ def test_a_sandbox_order_does_not_create_a_paper_order(client, auth_headers) -> 
     client.post(
         f"{BASE}/brokers/sandbox-orders",
         headers=headers,
-        json={"broker": "simulated", "client_order_id": "c-3", "symbol": "GBP/USD", "side": "buy", "quantity": 5},
+        json={
+            "broker": "simulated",
+            "client_order_id": "c-3",
+            "symbol": "GBP/USD",
+            "side": "buy",
+            "quantity": 5,
+        },
     )
     after = client.get(f"{BASE}/execution/orders", headers=headers).json()
     assert len(after) == len(before)
@@ -173,7 +193,15 @@ def test_every_assessment_item_cites_evidence(client, admin_headers) -> None:
 def test_the_assessment_covers_the_blueprint_categories(client, admin_headers) -> None:
     body = client.get(f"{BASE}/readiness/compliance", headers=admin_headers()).json()
     categories = {item["category"] for item in body["items"]}
-    for required in ("perimeter", "client_money", "promotions", "kyc", "data_protection", "crypto", "operations"):
+    for required in (
+        "perimeter",
+        "client_money",
+        "promotions",
+        "kyc",
+        "data_protection",
+        "crypto",
+        "operations",
+    ):
         assert required in categories
 
 
@@ -183,7 +211,10 @@ def test_the_counts_match_the_items(client, admin_headers) -> None:
 
 
 def test_the_summary_is_staff_only(client, auth_headers) -> None:
-    assert client.get(f"{BASE}/readiness/compliance/summary", headers=auth_headers()).status_code == 403
+    assert (
+        client.get(f"{BASE}/readiness/compliance/summary", headers=auth_headers()).status_code
+        == 403
+    )
 
 
 # ---------------------------------------------------------------- release gate

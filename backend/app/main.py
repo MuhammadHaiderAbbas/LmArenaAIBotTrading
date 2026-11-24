@@ -11,6 +11,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
 from app.api.v1 import api_router
+from app.core import release
 from app.core.config import settings
 from app.services.errors import DomainError
 
@@ -57,7 +58,7 @@ def create_app() -> FastAPI:
         title=f"{settings.PROJECT_NAME} API",
         description=(
             "Autonomous trading and financial intelligence platform.\n\n"
-            "**Phase 11 — Security & reliability.** Paper trading only. No real money, no live "
+            f"**{release.PHASE_NAME}.** Paper trading only. No real money, no live "
             "broker execution, no profit claims."
         ),
         version="0.1.0",
@@ -115,14 +116,12 @@ def create_app() -> FastAPI:
     app.include_router(api_router, prefix=settings.API_V1_PREFIX)
 
     @app.get("/", tags=["system"])
-    def root() -> dict[str, str]:
+    def root() -> dict[str, object]:
         return {
-            "name": settings.PROJECT_NAME,
-            "version": "0.1.0",
-            "phase": "Phase 11 — Security & reliability",
+            **release.identity(),
             "docs": "/docs",
             "health": f"{settings.API_V1_PREFIX}/system/health",
-            "environment": settings.ENVIRONMENT,
+            "openapi": "/openapi.json",
         }
 
     return app

@@ -67,9 +67,7 @@ def test_run_without_data_refuses_rather_than_inventing_a_view(client, auth_head
 
 def test_run_is_retrievable_by_id(client, auth_headers) -> None:
     headers = auth_headers()
-    created = client.post(
-        "/api/v1/ai/run", json={"symbol": "EUR/USD"}, headers=headers
-    ).json()
+    created = client.post("/api/v1/ai/run", json={"symbol": "EUR/USD"}, headers=headers).json()
     response = client.get(f"/api/v1/ai/runs/{created['id']}", headers=headers)
     assert response.status_code == 200
     assert response.json()["id"] == created["id"]
@@ -177,8 +175,6 @@ def test_run_records_the_question(client, auth_headers) -> None:
 
 @pytest.mark.parametrize("symbol", ["GBP/USD", "SPX500", "BTC/USD"])
 def test_runs_work_across_asset_classes(client, auth_headers, symbol) -> None:
-    run = client.post(
-        "/api/v1/ai/run", json={"symbol": symbol}, headers=auth_headers()
-    ).json()
+    run = client.post("/api/v1/ai/run", json={"symbol": symbol}, headers=auth_headers()).json()
     assert run["instrument_symbol"] == symbol
     assert run["tradeable"] is False

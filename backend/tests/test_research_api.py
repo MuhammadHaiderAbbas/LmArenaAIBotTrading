@@ -91,9 +91,7 @@ def test_ingest_creates_documents_and_chunks(client, seeded) -> None:
     assert all(document["source_code"] == "boe_news" for document in documents)
 
     document_id = documents[0]["id"]
-    chunks = client.get(
-        f"/api/v1/research/documents/{document_id}/chunks", headers=seeded
-    ).json()
+    chunks = client.get(f"/api/v1/research/documents/{document_id}/chunks", headers=seeded).json()
     assert chunks
     assert all(chunk["embedding_model"] for chunk in chunks)
 
@@ -108,9 +106,7 @@ def test_overview_reports_coverage_and_flags(client, seeded) -> None:
 
 
 def test_search_returns_citable_hits(client, seeded) -> None:
-    response = client.get(
-        "/api/v1/research/search?q=Bank%20Rate", headers=seeded
-    )
+    response = client.get("/api/v1/research/search?q=Bank%20Rate", headers=seeded)
     assert response.status_code == 200
     body = response.json()
     assert body["hits"]
@@ -132,7 +128,11 @@ def test_report_endpoint_returns_claims_with_citations(client, seeded) -> None:
     assert report["claims_total"] >= 1
     for claim in report["claims"]:
         assert claim["verdict"] in {
-            "supported", "partially_supported", "unsupported", "contradicted", "unverified"
+            "supported",
+            "partially_supported",
+            "unsupported",
+            "contradicted",
+            "unverified",
         }
         for citation in claim["citations"]:
             assert citation["quote"]
@@ -173,9 +173,7 @@ def test_ingest_is_rate_limited(client, admin_headers, monkeypatch) -> None:
 
 
 def test_document_filter_by_source_and_flags(client, seeded) -> None:
-    response = client.get(
-        "/api/v1/research/documents?source=boe_news&limit=5", headers=seeded
-    )
+    response = client.get("/api/v1/research/documents?source=boe_news&limit=5", headers=seeded)
     assert response.status_code == 200
     assert all(row["source_code"] == "boe_news" for row in response.json())
 

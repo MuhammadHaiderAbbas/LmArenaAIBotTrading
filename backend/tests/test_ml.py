@@ -126,8 +126,12 @@ def test_split_refuses_when_history_is_too_short() -> None:
 def test_mismatched_series_lengths_are_rejected() -> None:
     with pytest.raises(ValueError, match="same length"):
         feature_lib.build_matrix(
-            opens=[1.0, 2.0], highs=[1.0], lows=[1.0, 2.0], closes=[1.0, 2.0],
-            volumes=[1.0, 1.0], timestamps=["a", "b"],
+            opens=[1.0, 2.0],
+            highs=[1.0],
+            lows=[1.0, 2.0],
+            closes=[1.0, 2.0],
+            volumes=[1.0, 1.0],
+            timestamps=["a", "b"],
         )
 
 
@@ -271,9 +275,7 @@ def test_training_creates_a_candidate_never_a_champion(db_session) -> None:
     _seed_instrument(db)
     db.commit()
 
-    version = ml_registry.train_version(
-        db, model_code="direction_logistic_v1", symbol="TST/ML"
-    )
+    version = ml_registry.train_version(db, model_code="direction_logistic_v1", symbol="TST/ML")
     db.commit()
 
     assert version.status == ModelStatus.CANDIDATE
@@ -307,9 +309,7 @@ def test_promotion_is_refused_without_an_edge(db_session) -> None:
     ml_registry.seed_models(db)
     _seed_instrument(db, symbol="TST/NOEDGE", rows=500)
     db.commit()
-    version = ml_registry.train_version(
-        db, model_code="direction_logistic_v1", symbol="TST/NOEDGE"
-    )
+    version = ml_registry.train_version(db, model_code="direction_logistic_v1", symbol="TST/NOEDGE")
     db.commit()
 
     ok, reason = ml_registry.promotion_decision(db, version)
@@ -324,9 +324,7 @@ def test_forced_promotion_is_recorded_as_an_override(db_session) -> None:
     ml_registry.seed_models(db)
     _seed_instrument(db, symbol="TST/FORCE")
     db.commit()
-    version = ml_registry.train_version(
-        db, model_code="direction_logistic_v1", symbol="TST/FORCE"
-    )
+    version = ml_registry.train_version(db, model_code="direction_logistic_v1", symbol="TST/FORCE")
     db.commit()
 
     promoted = ml_registry.promote(
@@ -367,9 +365,7 @@ def test_rollback_without_a_predecessor_is_refused(db_session) -> None:
     ml_registry.seed_models(db)
     _seed_instrument(db, symbol="TST/NOROLL")
     db.commit()
-    version = ml_registry.train_version(
-        db, model_code="direction_logistic_v1", symbol="TST/NOROLL"
-    )
+    version = ml_registry.train_version(db, model_code="direction_logistic_v1", symbol="TST/NOROLL")
     db.commit()
     with pytest.raises(ValueError, match="no predecessor"):
         ml_registry.rollback(db, version_id=version.id, actor_id="admin")
@@ -440,9 +436,12 @@ def test_drift_is_detected_when_the_distribution_moves(db_session) -> None:
     db.commit()
 
     # Append a much more volatile stretch.
-    last = db.query(MarketCandle).filter(MarketCandle.instrument_id == instrument.id).order_by(
-        MarketCandle.open_time.desc()
-    ).first()
+    last = (
+        db.query(MarketCandle)
+        .filter(MarketCandle.instrument_id == instrument.id)
+        .order_by(MarketCandle.open_time.desc())
+        .first()
+    )
     rng = random.Random(5)  # noqa: S311 - synthetic fixtures
     price = float(last.close)
     when = last.open_time
@@ -469,7 +468,9 @@ def test_drift_is_detected_when_the_distribution_moves(db_session) -> None:
     events = ml_registry.detect_drift(db, version_id=version.id, symbol="TST/DRIFT")
     db.commit()
     assert events, "a volatility shift of this size should be detected"
-    assert any(event.severity in {DriftSeverity.WARNING, DriftSeverity.CRITICAL} for event in events)
+    assert any(
+        event.severity in {DriftSeverity.WARNING, DriftSeverity.CRITICAL} for event in events
+    )
     for event in events:
         assert event.threshold is not None
         # Drift is reported as a recommendation, never an automatic action.
@@ -482,9 +483,7 @@ def test_stable_data_produces_no_drift_events(db_session) -> None:
     ml_registry.seed_models(db)
     _seed_instrument(db, symbol="TST/STABLE", rows=500, drift=0.0)
     db.commit()
-    version = ml_registry.train_version(
-        db, model_code="direction_logistic_v1", symbol="TST/STABLE"
-    )
+    version = ml_registry.train_version(db, model_code="direction_logistic_v1", symbol="TST/STABLE")
     db.commit()
     events = ml_registry.detect_drift(db, version_id=version.id, symbol="TST/STABLE")
     db.commit()

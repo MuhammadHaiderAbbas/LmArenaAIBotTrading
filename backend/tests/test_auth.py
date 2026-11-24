@@ -63,9 +63,7 @@ def test_refresh_rotates_token_and_revokes_old_one(client: TestClient) -> None:
         json={"email": VALID_USER["email"], "password": VALID_USER["password"]},
     ).json()
 
-    refreshed = client.post(
-        "/api/v1/auth/refresh", json={"refresh_token": tokens["refresh_token"]}
-    )
+    refreshed = client.post("/api/v1/auth/refresh", json={"refresh_token": tokens["refresh_token"]})
     assert refreshed.status_code == 200
     assert refreshed.json()["refresh_token"] != tokens["refresh_token"]
 

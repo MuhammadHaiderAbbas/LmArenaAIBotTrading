@@ -130,7 +130,10 @@ def test_missing_market_data_is_refused(db_session) -> None:
     order = buy(db_session, account, symbol="EXE/NODATA")
     db_session.commit()
     assert order.status == OrderStatus.REJECTED
-    assert "no 1d bars" in order.reject_reason.lower() or "does not exist" in order.reject_reason.lower()
+    assert (
+        "no 1d bars" in order.reject_reason.lower()
+        or "does not exist" in order.reject_reason.lower()
+    )
 
 
 def test_unknown_instrument_is_refused(db_session) -> None:
@@ -278,8 +281,11 @@ def test_a_non_marketable_limit_order_rests_unfilled(db_session) -> None:
         db_session,
         account=account,
         proposal=Proposal(
-            symbol="EXE/LIMIT", side=OrderSide.BUY, quantity=5,
-            order_type=OrderType.LIMIT, limit_price=50.0,
+            symbol="EXE/LIMIT",
+            side=OrderSide.BUY,
+            quantity=5,
+            order_type=OrderType.LIMIT,
+            limit_price=50.0,
         ),
     )
     db_session.commit()
@@ -297,8 +303,11 @@ def test_a_limit_order_never_fills_worse_than_its_limit(db_session) -> None:
         db_session,
         account=account,
         proposal=Proposal(
-            symbol="EXE/LIM2", side=OrderSide.BUY, quantity=5,
-            order_type=OrderType.LIMIT, limit_price=101.0,
+            symbol="EXE/LIM2",
+            side=OrderSide.BUY,
+            quantity=5,
+            order_type=OrderType.LIMIT,
+            limit_price=101.0,
         ),
     )
     db_session.commit()
@@ -315,8 +324,11 @@ def test_cancelling_a_resting_order_is_recorded(db_session) -> None:
         db_session,
         account=account,
         proposal=Proposal(
-            symbol="EXE/CANCEL", side=OrderSide.BUY, quantity=5,
-            order_type=OrderType.LIMIT, limit_price=10.0,
+            symbol="EXE/CANCEL",
+            side=OrderSide.BUY,
+            quantity=5,
+            order_type=OrderType.LIMIT,
+            limit_price=10.0,
         ),
     )
     db_session.commit()
@@ -386,9 +398,9 @@ def test_a_sell_closes_the_position_and_books_realised_pnl(db_session) -> None:
     db_session.commit()
 
     # Move the market up so the sale is profitable.
-    db_session.query(MarketCandle).filter(
-        MarketCandle.instrument_id == instrument.id
-    ).update({MarketCandle.close: 120.0})
+    db_session.query(MarketCandle).filter(MarketCandle.instrument_id == instrument.id).update(
+        {MarketCandle.close: 120.0}
+    )
     db_session.flush()
 
     sell = order_service.create_order(
@@ -460,9 +472,9 @@ def test_marking_updates_the_unrealised_side_without_touching_the_ledger(db_sess
     db_session.commit()
     cash_before = ledger_service.ledger_cash(db_session, account)
 
-    db_session.query(MarketCandle).filter(
-        MarketCandle.instrument_id == instrument.id
-    ).update({MarketCandle.close: 150.0})
+    db_session.query(MarketCandle).filter(MarketCandle.instrument_id == instrument.id).update(
+        {MarketCandle.close: 150.0}
+    )
     db_session.flush()
     broker.mark_positions(db_session, account=account)
     db_session.commit()
@@ -480,8 +492,12 @@ def test_expiring_stale_day_orders(db_session) -> None:
         db_session,
         account=account,
         proposal=Proposal(
-            symbol="EXE/EXP", side=OrderSide.BUY, quantity=5,
-            order_type=OrderType.LIMIT, limit_price=10.0, time_in_force=TimeInForce.DAY,
+            symbol="EXE/EXP",
+            side=OrderSide.BUY,
+            quantity=5,
+            order_type=OrderType.LIMIT,
+            limit_price=10.0,
+            time_in_force=TimeInForce.DAY,
         ),
     )
     db_session.commit()

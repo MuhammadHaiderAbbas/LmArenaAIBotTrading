@@ -262,9 +262,7 @@ def test_total_provider_outage_is_reported_not_swallowed(client, admin_headers, 
 def test_unknown_symbol_returns_404(client, auth_headers) -> None:
     headers = auth_headers()
     assert client.get("/api/v1/markets/NOPE/candles", headers=headers).status_code == 404
-    response = client.post(
-        "/api/v1/markets/sync", json={"symbols": ["NOPE"]}, headers=headers
-    )
+    response = client.post("/api/v1/markets/sync", json={"symbols": ["NOPE"]}, headers=headers)
     assert response.status_code in (400, 403)  # 403 for non-staff before validation
 
 

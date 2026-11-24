@@ -4,6 +4,8 @@ from __future__ import annotations
 
 import pytest
 
+from app.core import release
+
 OPERATIONS = "/api/v1/operations"
 
 
@@ -13,7 +15,7 @@ def test_health_is_public(client) -> None:
     assert response.status_code == 200
     body = response.json()
     assert body["status"] in {"ok", "degraded"}
-    assert body["phase"].startswith("Phase 11")
+    assert body["phase"] == release.PHASE_NAME
 
 
 def test_health_is_shallow(client) -> None:
@@ -21,7 +23,14 @@ def test_health_is_shallow(client) -> None:
     body = client.get(f"{OPERATIONS}/health").json()
     assert body["checks"] == "shallow"
     assert "findings" not in body
-    assert set(body) <= {"status", "phase", "checks", "checked_at", "version"}
+    assert set(body) <= {
+        "status",
+        "phase",
+        "phases_complete",
+        "checks",
+        "checked_at",
+        "version",
+    }
 
 
 def test_monitoring_requires_auth(client) -> None:

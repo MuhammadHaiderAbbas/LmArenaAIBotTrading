@@ -29,7 +29,9 @@ from app.services import ledger_service, monitoring
 def make_account(db, email: str = "mon@aurex.ai", funding: float = 50_000.0) -> TradingAccount:
     user = db.query(User).filter(User.email == email).first()
     if user is None:
-        user = User(email=email, password_hash="x", full_name="Mon", is_active=True, is_verified=True)
+        user = User(
+            email=email, password_hash="x", full_name="Mon", is_active=True, is_verified=True
+        )
         db.add(user)
         db.flush()
     account = TradingAccount(
@@ -42,7 +44,9 @@ def make_account(db, email: str = "mon@aurex.ai", funding: float = 50_000.0) -> 
     return account
 
 
-def seed_instrument(db, symbol: str = "MON/T", *, bars: int = 30, age_hours: float = 0.0) -> Instrument:
+def seed_instrument(
+    db, symbol: str = "MON/T", *, bars: int = 30, age_hours: float = 0.0
+) -> Instrument:
     venue = db.query(Venue).first()
     if venue is None:
         venue = Venue(code="MONV", name="Mon venue", asset_class="forex")
@@ -269,7 +273,10 @@ def test_the_report_summarises_severity(db_session) -> None:
     report = monitoring.health_report(db_session, account=account)
     assert report["status"] in {"ok", "warning", "critical"}
     assert report["checks_run"] == len(report["findings"])
-    assert report["counts"]["ok"] + report["counts"]["warning"] + report["counts"]["critical"] == report["checks_run"]
+    assert (
+        report["counts"]["ok"] + report["counts"]["warning"] + report["counts"]["critical"]
+        == report["checks_run"]
+    )
     assert {"data_freshness", "order_activity", "audit_chain", "reconciliation"} <= {
         finding["check"] for finding in report["findings"]
     }

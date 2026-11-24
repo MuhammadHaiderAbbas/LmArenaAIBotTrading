@@ -14,6 +14,7 @@ from fastapi import APIRouter, Query
 from sqlalchemy import func, select
 
 from app.api.deps import CurrentUser, DbSession, StaffUser
+from app.core import release
 from app.core.audit import record_audit
 from app.models.account import TradingAccount
 from app.models.integrity import AuditSeal
@@ -29,8 +30,9 @@ def health() -> dict:
     """Liveness only. No database, no account state, no internals."""
     return {
         "status": "ok",
-        "phase": "Phase 11 — Security & reliability",
-        "version": "0.1.0",
+        "phase": release.PHASE_NAME,
+        "phases_complete": release.PHASES_COMPLETE,
+        "version": release.VERSION,
         "checks": "shallow",
         "checked_at": datetime.now(UTC).isoformat(),
     }

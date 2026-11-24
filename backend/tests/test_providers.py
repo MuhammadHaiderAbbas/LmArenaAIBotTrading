@@ -78,10 +78,22 @@ def test_kraken_surfaces_api_errors() -> None:
 TD_SERIES = {
     "meta": {"symbol": "AAPL", "interval": "1day"},
     "values": [
-        {"datetime": "2026-11-21", "open": "100.0", "high": "102.0", "low": "99.0",
-         "close": "101.0", "volume": "1000"},
-        {"datetime": "2026-11-20", "open": "99.0", "high": "101.0", "low": "98.0",
-         "close": "100.0", "volume": "900"},
+        {
+            "datetime": "2026-11-21",
+            "open": "100.0",
+            "high": "102.0",
+            "low": "99.0",
+            "close": "101.0",
+            "volume": "1000",
+        },
+        {
+            "datetime": "2026-11-20",
+            "open": "99.0",
+            "high": "101.0",
+            "low": "98.0",
+            "close": "100.0",
+            "volume": "900",
+        },
     ],
     "status": "ok",
 }
@@ -177,8 +189,9 @@ def test_frankfurter_refuses_intraday_instead_of_faking_it() -> None:
 
 def test_frankfurter_quote_uses_the_latest_reference_rate() -> None:
     quote = FrankfurterProvider(
-        client=FakeClient({"amount": 1.0, "base": "GBP", "date": "2026-11-20",
-                           "rates": {"USD": 1.3074}})
+        client=FakeClient(
+            {"amount": 1.0, "base": "GBP", "date": "2026-11-20", "rates": {"USD": 1.3074}}
+        )
     ).fetch_quote("GBPUSD")
     assert quote.last == pytest.approx(1.3074)
     assert quote.observed_at == datetime(2026, 11, 20, 15, tzinfo=UTC)

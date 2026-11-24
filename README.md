@@ -2,6 +2,9 @@
 
 **Version 0.1.0 · Phases 1–12 (blueprint complete)** · paper trading only · no real money · no broker execution
 
+> **Delivering this project?** Read [`DELIVERY.md`](DELIVERY.md) first — what was built,
+> how it was verified, and what is deliberately not done.
+
 AUREX AI is a multi-market quantitative trading and financial research platform. It combines
 market-data ingestion, specialist AI research agents, quantitative models, strategy evaluation,
 portfolio simulation, deterministic risk controls and automated order execution — with the explicit
@@ -276,7 +279,15 @@ cd backend
 python -m venv .venv && source .venv/bin/activate
 pip install -r requirements.txt
 export DATABASE_URL="sqlite:///./aurex_dev.db"
-python -m app.seed                 # creates schema + users
+export SECRET_KEY="a-random-string-of-at-least-32-characters"
+
+alembic upgrade head               # schema, via migrations — not create_all
+python -m app.seed                 # admin + demo trader + registry + agents
+# Optional, offline development only: generates deterministic bars so the charts,
+# indicators and monitoring have something to look at. Every bar is labelled
+# provider="synthetic" and the seed prints a warning. Do NOT use this for research.
+# export AUREX_SEED_SYNTHETIC_DATA=1
+
 uvicorn app.main:app --reload --port 8000
 
 # Frontend (second terminal)
@@ -285,11 +296,21 @@ npm install
 npm run dev                        # http://localhost:5173
 ```
 
+Those three commands are exactly what `backend/entrypoint.sh` runs in the container
+(migrations → seed → serve), so a local run and a deployed run take the same path.
+
+If you skip `AUREX_SEED_SYNTHETIC_DATA` and have no network, the platform will report
+CRITICAL on `/operations` for stale data. That is the correct answer — it is telling you
+the truth about an install whose feeds have not run.
+
 ### 3. Tests
 
 ```bash
-cd backend && pytest -q                          # 35 tests
-cd frontend && npm run typecheck && npm test
+cd backend && ruff check app tests && pytest -q   # 552 tests
+cd frontend && npm run typecheck && npm test      # 285 tests in 22 files
+
+# End-to-end against a running API (all twelve phases, ~37 checks)
+python3 tools/smoke_e2e.py http://localhost:8000
 ```
 
 ---

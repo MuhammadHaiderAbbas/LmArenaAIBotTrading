@@ -27,8 +27,14 @@ def make_venue(**overrides) -> Venue:
     return Venue(**defaults)
 
 
-def series(count: int, *, start: datetime = NOW - timedelta(hours=24), step_minutes: int = 60,
-           price: float = 100.0, volume: float = 10.0) -> list[NormalisedBar]:
+def series(
+    count: int,
+    *,
+    start: datetime = NOW - timedelta(hours=24),
+    step_minutes: int = 60,
+    price: float = 100.0,
+    volume: float = 10.0,
+) -> list[NormalisedBar]:
     bars = []
     for index in range(count):
         value = price + index * 0.5
@@ -98,10 +104,14 @@ def test_gap_during_closed_session_is_not_reported() -> None:
     friday_close = datetime(2026, 11, 20, 21, 0, tzinfo=UTC)
     monday_open = datetime(2026, 11, 23, 14, 30, tzinfo=UTC)
     bars = [
-        NormalisedBar(open_time=friday_close - timedelta(hours=1), open=100, high=101, low=99, close=100.5),
+        NormalisedBar(
+            open_time=friday_close - timedelta(hours=1), open=100, high=101, low=99, close=100.5
+        ),
         NormalisedBar(open_time=friday_close, open=100.5, high=101, low=99, close=100.2),
         NormalisedBar(open_time=monday_open, open=100.2, high=102, low=100, close=101.5),
-        NormalisedBar(open_time=monday_open + timedelta(hours=1), open=101.5, high=103, low=101, close=102.5),
+        NormalisedBar(
+            open_time=monday_open + timedelta(hours=1), open=101.5, high=103, low=101, close=102.5
+        ),
     ]
     findings = check_bars(
         bars, timeframe=Timeframe.H1, venue=venue, at=monday_open + timedelta(hours=2)

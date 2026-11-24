@@ -78,21 +78,32 @@ def db_session(client):
 
 class StubResearchProvider:
     name = "rss"
+
     def __init__(self, items):
         self.items = items
         self.calls = 0
+
     def fetch(self, feed_url, *, limit=40):
         self.calls += 1
         return FetchResult(items=self.items[:limit])
-    def health(self, feed_url): return True, "stubbed"
+
+    def health(self, feed_url):
+        return True, "stubbed"
 
 
 def make_source(db, code="stub_feed", storage=False):
     from app.models.research import SourceKind, SourceRecord, TrustTier
+
     source = SourceRecord(
-        code=code, name="Test feed", publisher="Test", kind=SourceKind.CENTRAL_BANK,
-        trust_tier=TrustTier.PRIMARY, feed_url="https://example.gov/rss",
-        licence="test", redistribution="link_only", storage_permitted=storage,
+        code=code,
+        name="Test feed",
+        publisher="Test",
+        kind=SourceKind.CENTRAL_BANK,
+        trust_tier=TrustTier.PRIMARY,
+        feed_url="https://example.gov/rss",
+        licence="test",
+        redistribution="link_only",
+        storage_permitted=storage,
     )
     db.add(source)
     db.commit()
@@ -220,10 +231,17 @@ def test_metric_entities_are_extracted_with_their_value() -> None:
 def test_ingestion_dedupes_by_external_id(db_session, monkeypatch) -> None:
     db = db_session
     source = make_source(db)
-    stub = StubResearchProvider([
-        FeedItem(external_id="a", title="Bank Rate held at 4%", url="https://e.com/a",
-                 summary="The committee voted to hold Bank Rate at 4% today.", published_at=datetime.now(UTC)),
-    ])
+    stub = StubResearchProvider(
+        [
+            FeedItem(
+                external_id="a",
+                title="Bank Rate held at 4%",
+                url="https://e.com/a",
+                summary="The committee voted to hold Bank Rate at 4% today.",
+                published_at=datetime.now(UTC),
+            ),
+        ]
+    )
     monkeypatch.setitem(ingestion.PROVIDERS, "rss", stub)
 
     first = ingestion.ingest_source(db, source, limit=10)
@@ -239,10 +257,17 @@ def test_ingestion_dedupes_by_external_id(db_session, monkeypatch) -> None:
 def test_ingestion_rejects_ui_chrome_titles(db_session, monkeypatch) -> None:
     db = db_session
     source = make_source(db)
-    stub = StubResearchProvider([
-        FeedItem(external_id="x", title="Close dialog", url="https://e.com/x",
-                 summary="Some text that is long enough to otherwise be accepted.", published_at=datetime.now(UTC)),
-    ])
+    stub = StubResearchProvider(
+        [
+            FeedItem(
+                external_id="x",
+                title="Close dialog",
+                url="https://e.com/x",
+                summary="Some text that is long enough to otherwise be accepted.",
+                published_at=datetime.now(UTC),
+            ),
+        ]
+    )
     monkeypatch.setitem(ingestion.PROVIDERS, "rss", stub)
     run = ingestion.ingest_source(db, source, limit=5)
     db.commit()
@@ -256,9 +281,12 @@ def test_source_failure_is_recorded_and_does_not_raise(db_session, monkeypatch) 
 
     class Failing:
         name = "rss"
+
         def fetch(self, feed_url, *, limit=40):
             raise ResearchProviderError("rss", "feed exploded", retryable=True)
-        def health(self, feed_url): return False, "feed exploded"
+
+        def health(self, feed_url):
+            return False, "feed exploded"
 
     monkeypatch.setitem(ingestion.PROVIDERS, "rss", Failing())
     run = ingestion.ingest_source(db, source, limit=5)
@@ -275,13 +303,18 @@ def test_link_only_sources_do_not_store_the_body(db_session, monkeypatch) -> Non
 
     db = db_session
     source = make_source(db, storage=False)
-    stub = StubResearchProvider([
-        FeedItem(external_id="lic", title="Bank Rate held at 4% for November",
-                 url="https://e.com/lic",
-                 summary="The committee voted to hold Bank Rate at 4%.",
-                 content="The committee voted to hold Bank Rate at 4% and noted risks. " * 20,
-                 published_at=datetime.now(UTC)),
-    ])
+    stub = StubResearchProvider(
+        [
+            FeedItem(
+                external_id="lic",
+                title="Bank Rate held at 4% for November",
+                url="https://e.com/lic",
+                summary="The committee voted to hold Bank Rate at 4%.",
+                content="The committee voted to hold Bank Rate at 4% and noted risks. " * 20,
+                published_at=datetime.now(UTC),
+            ),
+        ]
+    )
     monkeypatch.setitem(ingestion.PROVIDERS, "rss", stub)
     ingestion.ingest_source(db, source, limit=5)
     db.commit()
@@ -295,23 +328,33 @@ def test_link_only_sources_do_not_store_the_body(db_session, monkeypatch) -> Non
 
 def _seed_corpus(db, monkeypatch):
     source = make_source(db)
-    stub = StubResearchProvider([
-        FeedItem(external_id="r1", title="Bank Rate held at 4% as inflation slows",
-                 url="https://e.com/r1",
-                 summary=(
-                     "The Monetary Policy Committee voted to hold Bank Rate at 4%. "
-                     "Inflation was 2.6 per cent in October, down from 3.1 per cent. "
-                     "The committee said policy would remain restrictive for some time. "
-                 ) * 6,
-                 published_at=datetime.now(UTC)),
-        FeedItem(external_id="r2", title="Gold settles lower as dollar strengthens",
-                 url="https://e.com/r2",
-                 summary=(
-                     "Comex gold settled 1.2 per cent lower at 2,640 dollars an ounce. "
-                     "Silver also fell while the dollar index rose. "
-                 ) * 6,
-                 published_at=datetime.now(UTC)),
-    ])
+    stub = StubResearchProvider(
+        [
+            FeedItem(
+                external_id="r1",
+                title="Bank Rate held at 4% as inflation slows",
+                url="https://e.com/r1",
+                summary=(
+                    "The Monetary Policy Committee voted to hold Bank Rate at 4%. "
+                    "Inflation was 2.6 per cent in October, down from 3.1 per cent. "
+                    "The committee said policy would remain restrictive for some time. "
+                )
+                * 6,
+                published_at=datetime.now(UTC),
+            ),
+            FeedItem(
+                external_id="r2",
+                title="Gold settles lower as dollar strengthens",
+                url="https://e.com/r2",
+                summary=(
+                    "Comex gold settled 1.2 per cent lower at 2,640 dollars an ounce. "
+                    "Silver also fell while the dollar index rose. "
+                )
+                * 6,
+                published_at=datetime.now(UTC),
+            ),
+        ]
+    )
     monkeypatch.setitem(ingestion.PROVIDERS, "rss", stub)
     ingestion.ingest_source(db, source, limit=10)
     db.commit()
@@ -346,7 +389,9 @@ def test_empty_query_returns_nothing(db_session, monkeypatch) -> None:
 
 
 def test_sentence_splitter_protects_decimals() -> None:
-    sentences = retrieval._sentences("Bank Rate is 3.75% and GBP/USD is 1.3074 today. Next sentence here.")
+    sentences = retrieval._sentences(
+        "Bank Rate is 3.75% and GBP/USD is 1.3074 today. Next sentence here."
+    )
     assert len(sentences) == 2
     assert "3.75%" in sentences[0]
 
@@ -369,11 +414,14 @@ def test_claim_extraction_rejects_fragments() -> None:
 
 def test_on_topic_rejects_a_shared_generic_word() -> None:
     # "Bank of Nova Scotia" is not about Bank Rate.
-    assert reports._is_on_topic(
-        "Federal Reserve Board announces approval of application by The Bank of Nova Scotia",
-        "Bank Rate decision",
-        None,
-    ) is False
+    assert (
+        reports._is_on_topic(
+            "Federal Reserve Board announces approval of application by The Bank of Nova Scotia",
+            "Bank Rate decision",
+            None,
+        )
+        is False
+    )
 
 
 def test_report_marks_unsupported_claims_rather_than_hiding_them(db_session, monkeypatch) -> None:
@@ -400,15 +448,21 @@ def test_report_discloses_when_no_primary_source_supports_it(db_session, monkeyp
     db = db_session
     source = make_source(db, code="commentary_only")
     from app.models.research import TrustTier
+
     source.trust_tier = TrustTier.COMMENTARY
     db.commit()
 
-    stub = StubResearchProvider([
-        FeedItem(external_id="c1", title="Analysts expect Bank Rate to fall",
-                 url="https://e.com/c1",
-                 summary=("Analysts said Bank Rate could fall to 3.5% next year. ") * 10,
-                 published_at=datetime.now(UTC)),
-    ])
+    stub = StubResearchProvider(
+        [
+            FeedItem(
+                external_id="c1",
+                title="Analysts expect Bank Rate to fall",
+                url="https://e.com/c1",
+                summary=("Analysts said Bank Rate could fall to 3.5% next year. ") * 10,
+                published_at=datetime.now(UTC),
+            ),
+        ]
+    )
     monkeypatch.setitem(ingestion.PROVIDERS, "rss", stub)
     ingestion.ingest_source(db, source, limit=5)
     db.commit()
@@ -466,7 +520,10 @@ def test_body_client_boilerplate_is_dropped() -> None:
 
 def test_sec_cik_is_extracted_from_the_registry_url() -> None:
     assert _cik_from("https://data.sec.gov/submissions/CIK0000320193.json") == "0000320193"
-    assert _cik_from("https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK=789019") == "0000789019"
+    assert (
+        _cik_from("https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK=789019")
+        == "0000789019"
+    )
 
 
 def test_sec_provider_reports_missing_contact_clearly() -> None:
@@ -475,7 +532,10 @@ def test_sec_provider_reports_missing_contact_clearly() -> None:
             class Response:
                 status_code = 403
                 text = ""
-                def json(self): return {}
+
+                def json(self):
+                    return {}
+
             return Response()
 
     provider = SecEdgarProvider(client=Forbidden())

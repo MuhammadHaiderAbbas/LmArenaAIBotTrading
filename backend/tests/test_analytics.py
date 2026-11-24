@@ -24,7 +24,9 @@ from app.services.execution.orders import Proposal
 def make_account(db, email: str, funding: float = 100_000.0) -> TradingAccount:
     user = db.query(User).filter(User.email == email).first()
     if user is None:
-        user = User(email=email, password_hash="x", full_name="Ana", is_active=True, is_verified=True)
+        user = User(
+            email=email, password_hash="x", full_name="Ana", is_active=True, is_verified=True
+        )
         db.add(user)
         db.flush()
     account = TradingAccount(
@@ -95,7 +97,9 @@ def round_trip(db, account, instrument, *, quantity: float, entry: float, exit: 
     db.flush()
 
     sell = order_service.create_order(
-        db, account=account, proposal=Proposal(symbol=symbol, side=OrderSide.SELL, quantity=quantity)
+        db,
+        account=account,
+        proposal=Proposal(symbol=symbol, side=OrderSide.SELL, quantity=quantity),
     )
     db.flush()
     broker.execute_order(db, account=account, order=sell)
@@ -132,7 +136,9 @@ def test_starting_equity_comes_from_the_opening_entry(db_session) -> None:
 def test_a_profitable_round_trip_is_net_of_commission(db_session) -> None:
     account = make_account(db_session, "profit@ana.ai")
     instrument = seed(db_session, "ANA/UP")
-    round_trip(db_session, account, instrument, quantity=100, entry=100.0, exit=110.0, symbol="ANA/UP")
+    round_trip(
+        db_session, account, instrument, quantity=100, entry=100.0, exit=110.0, symbol="ANA/UP"
+    )
 
     report = analytics.build_report(db_session, account)
     assert len(report.trades) == 1
@@ -155,7 +161,9 @@ def test_trade_pnl_plus_commission_reconciles_to_the_position_table(db_session) 
     """
     account = make_account(db_session, "recon@ana.ai")
     instrument = seed(db_session, "ANA/RECON")
-    round_trip(db_session, account, instrument, quantity=50, entry=100.0, exit=105.0, symbol="ANA/RECON")
+    round_trip(
+        db_session, account, instrument, quantity=50, entry=100.0, exit=105.0, symbol="ANA/RECON"
+    )
 
     report = analytics.build_report(db_session, account)
     fifo_net = sum(trade.realised_pnl for trade in report.trades)
@@ -167,7 +175,9 @@ def test_trade_pnl_plus_commission_reconciles_to_the_position_table(db_session) 
 def test_a_losing_round_trip_is_negative(db_session) -> None:
     account = make_account(db_session, "loss@ana.ai")
     instrument = seed(db_session, "ANA/DOWN")
-    round_trip(db_session, account, instrument, quantity=100, entry=100.0, exit=90.0, symbol="ANA/DOWN")
+    round_trip(
+        db_session, account, instrument, quantity=100, entry=100.0, exit=90.0, symbol="ANA/DOWN"
+    )
 
     report = analytics.build_report(db_session, account)
     assert report.trades[0].realised_pnl < 0
@@ -179,7 +189,9 @@ def test_an_open_position_produces_no_closed_trade(db_session) -> None:
     account = make_account(db_session, "open@ana.ai")
     seed(db_session, "ANA/OPEN")
     buy = order_service.create_order(
-        db_session, account=account, proposal=Proposal(symbol="ANA/OPEN", side=OrderSide.BUY, quantity=10)
+        db_session,
+        account=account,
+        proposal=Proposal(symbol="ANA/OPEN", side=OrderSide.BUY, quantity=10),
     )
     db_session.flush()
     broker.execute_order(db_session, account=account, order=buy)
@@ -195,7 +207,9 @@ def test_an_open_position_produces_no_closed_trade(db_session) -> None:
 def test_fifo_matches_partial_exits(db_session) -> None:
     account = make_account(db_session, "fifo@ana.ai")
     instrument = seed(db_session, "ANA/FIFO")
-    round_trip(db_session, account, instrument, quantity=100, entry=100.0, exit=110.0, symbol="ANA/FIFO")
+    round_trip(
+        db_session, account, instrument, quantity=100, entry=100.0, exit=110.0, symbol="ANA/FIFO"
+    )
     report = analytics.build_report(db_session, account)
     assert sum(trade.quantity for trade in report.trades) == pytest.approx(100.0)
 
@@ -211,7 +225,9 @@ def test_the_curve_does_not_invent_a_drawdown_on_a_profitable_account(db_session
     """
     account = make_account(db_session, "curve@ana.ai")
     instrument = seed(db_session, "ANA/CURVE")
-    round_trip(db_session, account, instrument, quantity=100, entry=100.0, exit=110.0, symbol="ANA/CURVE")
+    round_trip(
+        db_session, account, instrument, quantity=100, entry=100.0, exit=110.0, symbol="ANA/CURVE"
+    )
 
     report = analytics.build_report(db_session, account)
     by_key = {metric.key: metric for metric in report.metrics}
@@ -223,7 +239,9 @@ def test_the_curve_holds_the_position_while_it_is_open(db_session) -> None:
     account = make_account(db_session, "hold@ana.ai")
     seed(db_session, "ANA/HOLD")
     buy = order_service.create_order(
-        db_session, account=account, proposal=Proposal(symbol="ANA/HOLD", side=OrderSide.BUY, quantity=10)
+        db_session,
+        account=account,
+        proposal=Proposal(symbol="ANA/HOLD", side=OrderSide.BUY, quantity=10),
     )
     db_session.flush()
     broker.execute_order(db_session, account=account, order=buy)
@@ -240,7 +258,9 @@ def test_the_curve_holds_the_position_while_it_is_open(db_session) -> None:
 def test_the_benchmark_covers_the_same_instruments(db_session) -> None:
     account = make_account(db_session, "bench@ana.ai")
     instrument = seed(db_session, "ANA/BENCH")
-    round_trip(db_session, account, instrument, quantity=10, entry=100.0, exit=102.0, symbol="ANA/BENCH")
+    round_trip(
+        db_session, account, instrument, quantity=10, entry=100.0, exit=102.0, symbol="ANA/BENCH"
+    )
     report = analytics.build_report(db_session, account)
     assert report.benchmark_curve
     assert any("not an index" in note for note in report.notes)
@@ -258,7 +278,20 @@ def test_sharpe_is_refused_when_volatility_is_zero() -> None:
 
 
 def test_sharpe_is_computed_on_a_real_sample() -> None:
-    returns = [0.01, -0.004, 0.007, 0.002, -0.006, 0.009, 0.003, -0.001, 0.005, 0.004, 0.002, -0.003]
+    returns = [
+        0.01,
+        -0.004,
+        0.007,
+        0.002,
+        -0.006,
+        0.009,
+        0.003,
+        -0.001,
+        0.005,
+        0.004,
+        0.002,
+        -0.003,
+    ]
     value = analytics.sharpe(returns)
     assert value is not None
     assert value > 0
@@ -311,7 +344,9 @@ def test_profit_factor_divides_gains_by_losses() -> None:
 def test_win_rate_counts_only_profitable_trips(db_session) -> None:
     account = make_account(db_session, "winrate@ana.ai")
     instrument = seed(db_session, "ANA/WIN")
-    round_trip(db_session, account, instrument, quantity=10, entry=100.0, exit=105.0, symbol="ANA/WIN")
+    round_trip(
+        db_session, account, instrument, quantity=10, entry=100.0, exit=105.0, symbol="ANA/WIN"
+    )
     report = analytics.build_report(db_session, account)
     by_key = {metric.key: metric for metric in report.metrics}
     # One trip is below the reporting threshold, so the rate is withheld.
@@ -325,7 +360,9 @@ def test_win_rate_counts_only_profitable_trips(db_session) -> None:
 def test_costs_are_broken_out_not_lumped_together(db_session) -> None:
     account = make_account(db_session, "costs@ana.ai")
     instrument = seed(db_session, "ANA/COST")
-    round_trip(db_session, account, instrument, quantity=10, entry=100.0, exit=101.0, symbol="ANA/COST")
+    round_trip(
+        db_session, account, instrument, quantity=10, entry=100.0, exit=101.0, symbol="ANA/COST"
+    )
     report = analytics.build_report(db_session, account)
     costs = report.cost_breakdown
     assert costs["commission"] > 0
@@ -338,7 +375,9 @@ def test_costs_are_broken_out_not_lumped_together(db_session) -> None:
 def test_attribution_splits_by_instrument_and_origin(db_session) -> None:
     account = make_account(db_session, "attr@ana.ai")
     instrument = seed(db_session, "ANA/ATTR")
-    round_trip(db_session, account, instrument, quantity=10, entry=100.0, exit=105.0, symbol="ANA/ATTR")
+    round_trip(
+        db_session, account, instrument, quantity=10, entry=100.0, exit=105.0, symbol="ANA/ATTR"
+    )
     report = analytics.build_report(db_session, account)
     assert "ANA/ATTR" in report.attribution["by_symbol"]
     assert "manual" in report.attribution["by_strategy"]
@@ -347,7 +386,9 @@ def test_attribution_splits_by_instrument_and_origin(db_session) -> None:
 def test_turnover_is_traded_notional_over_average_equity(db_session) -> None:
     account = make_account(db_session, "turn@ana.ai")
     instrument = seed(db_session, "ANA/TURN")
-    round_trip(db_session, account, instrument, quantity=10, entry=100.0, exit=100.0, symbol="ANA/TURN")
+    round_trip(
+        db_session, account, instrument, quantity=10, entry=100.0, exit=100.0, symbol="ANA/TURN"
+    )
     report = analytics.build_report(db_session, account)
     by_key = {metric.key: metric for metric in report.metrics}
     assert by_key["turnover"].value is not None

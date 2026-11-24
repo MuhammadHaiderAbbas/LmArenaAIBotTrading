@@ -8,6 +8,7 @@ from fastapi import APIRouter
 from sqlalchemy import text
 
 from app.api.deps import DbSession
+from app.core import release
 from app.core.config import settings
 from app.schemas.system import HealthResponse
 
@@ -40,7 +41,8 @@ def meta() -> dict[str, object]:
     return {
         "name": settings.PROJECT_NAME,
         "version": "0.1.0",
-        "phase": "Phase 11 — Security & reliability",
+        "phase": release.PHASE_NAME,
+        "phases_complete": release.PHASES_COMPLETE,
         "environment": settings.ENVIRONMENT,
         "execution_mode": "paper",
         "live_trading_enabled": settings.LIVE_TRADING_ENABLED,

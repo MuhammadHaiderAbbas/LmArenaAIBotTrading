@@ -20,6 +20,11 @@ class Settings(BaseSettings):
 
     # --- Identity -----------------------------------------------------------
     PROJECT_NAME: str = "AUREX AI"
+    # The one place the delivered phase is named. Four modules used to hardcode this
+    # string and they drifted (the API still said Phase 11 after Phase 12 shipped), so
+    # it lives here and is imported. See app/core/release.py.
+    PHASE: str = "Phase 12 — Readiness"
+    VERSION: str = "0.1.0"
     API_V1_PREFIX: str = "/api/v1"
     ENVIRONMENT: Environment = "development"
     DEBUG: bool = True

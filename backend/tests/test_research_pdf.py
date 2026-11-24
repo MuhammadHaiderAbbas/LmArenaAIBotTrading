@@ -175,11 +175,7 @@ def test_ingest_fetches_and_indexes_a_pdf_for_a_storage_permitted_source(
         run = ingestion.ingest_source(db, source, limit=5)
         db.commit()
 
-        document = (
-            db.query(ResearchDocument)
-            .filter(ResearchDocument.external_id == "pdf-1")
-            .one()
-        )
+        document = db.query(ResearchDocument).filter(ResearchDocument.external_id == "pdf-1").one()
         assert document.content_stored is True
         assert document.word_count > 100
         assert run.pdf_extracted == 1
@@ -187,9 +183,7 @@ def test_ingest_fetches_and_indexes_a_pdf_for_a_storage_permitted_source(
 
         chunk_words = sum(
             len(chunk.text.split())
-            for chunk in db.query(ResearchChunk).filter(
-                ResearchChunk.document_id == document.id
-            )
+            for chunk in db.query(ResearchChunk).filter(ResearchChunk.document_id == document.id)
         )
         assert chunk_words > 100, "PDF text must reach the index, not just the row"
     finally:
@@ -240,9 +234,7 @@ def test_a_failed_pdf_fetch_is_counted_and_disclosed(client, monkeypatch) -> Non
 
         assert run.pdf_failures == 1
         document = (
-            db.query(ResearchDocument)
-            .filter(ResearchDocument.external_id == "pdf-bad")
-            .one()
+            db.query(ResearchDocument).filter(ResearchDocument.external_id == "pdf-bad").one()
         )
         # The row still exists and the failure is recorded on it, so a reader can
         # open the source and knows why the text is not here.

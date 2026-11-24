@@ -196,7 +196,9 @@ def test_resuming_with_no_breaker_returns_409(client, admin_headers) -> None:
     assert response.status_code in {200, 409}
 
 
-def test_policy_change_is_staff_only_and_creates_a_version(client, auth_headers, admin_headers) -> None:
+def test_policy_change_is_staff_only_and_creates_a_version(
+    client, auth_headers, admin_headers
+) -> None:
     admin_headers = admin_headers()
     headers = auth_headers("policychange@aurex.ai")
     refused = client.put(

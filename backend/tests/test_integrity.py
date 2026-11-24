@@ -83,9 +83,7 @@ def test_changing_the_actor_breaks_the_chain(db_session) -> None:
 def test_deleting_a_middle_entry_breaks_the_chain(db_session) -> None:
     """A deletion is caught by the orphaned seal, not by the row count."""
     write_entries(db_session, 3)
-    victim = db_session.scalars(
-        select(AuditLog).where(AuditLog.action == "test.action1")
-    ).one()
+    victim = db_session.scalars(select(AuditLog).where(AuditLog.action == "test.action1")).one()
     db_session.delete(victim)
     db_session.commit()
     # The seal cascades with the row, so the sequence now has a gap.
@@ -147,9 +145,17 @@ def test_sealing_pending_entries_adopts_pre_existing_ones(db_session) -> None:
 
 def test_hashes_are_deterministic_across_processes(db_session) -> None:
     """Same content, same chain position, same hash — or nothing can be verified."""
-    payload = {"actor_id": None, "actor_email": "a@b.c", "action": "x", "entity_type": None,
-               "entity_id": None, "outcome": "success", "detail": "d", "created_at": "2026-01-01T00:00:00+00:00",
-               "id": "fixed-id"}
+    payload = {
+        "actor_id": None,
+        "actor_email": "a@b.c",
+        "action": "x",
+        "entity_type": None,
+        "entity_id": None,
+        "outcome": "success",
+        "detail": "d",
+        "created_at": "2026-01-01T00:00:00+00:00",
+        "id": "fixed-id",
+    }
     first = integrity.compute_hash(payload, integrity.GENESIS)
     second = integrity.compute_hash(dict(payload), integrity.GENESIS)
     assert first == second

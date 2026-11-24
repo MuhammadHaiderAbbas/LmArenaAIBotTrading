@@ -34,7 +34,9 @@ def test_a_fresh_backup_verifies(backup_dir) -> None:
     assert result["tables"] > 40
 
 
-def test_the_backup_carries_the_audit_trail(client, auth_headers, admin_headers, backup_dir) -> None:
+def test_the_backup_carries_the_audit_trail(
+    client, auth_headers, admin_headers, backup_dir
+) -> None:
     """Log in so there is something in the trail, then prove the backup kept it."""
     auth_headers()
     entry = backup.backup_database(destination_dir=backup_dir, label="trail")
@@ -93,7 +95,9 @@ def test_only_staff_can_list_backups(client, auth_headers) -> None:
 
 
 def test_only_staff_can_run_a_drill(client, auth_headers) -> None:
-    assert client.post("/api/v1/operations/backups/drill", headers=auth_headers()).status_code == 403
+    assert (
+        client.post("/api/v1/operations/backups/drill", headers=auth_headers()).status_code == 403
+    )
 
 
 def test_staff_can_create_a_backup_over_http(client, admin_headers, tmp_path, monkeypatch) -> None:
@@ -107,7 +111,9 @@ def test_staff_can_create_a_backup_over_http(client, admin_headers, tmp_path, mo
 
 def test_verify_requires_a_path(client, admin_headers) -> None:
     assert (
-        client.post("/api/v1/operations/backups/verify", headers=admin_headers(), json={}).status_code
+        client.post(
+            "/api/v1/operations/backups/verify", headers=admin_headers(), json={}
+        ).status_code
         == 422
     )
 

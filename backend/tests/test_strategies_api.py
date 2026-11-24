@@ -55,7 +55,12 @@ def seed_symbol(db, symbol: str, rows: int = 700, *, drift: float = 0.0004, seed
 def test_strategy_endpoints_require_authentication(client) -> None:
     assert client.get("/api/v1/strategies").status_code == 401
     assert client.get("/api/v1/strategies/overview").status_code == 401
-    assert client.post("/api/v1/strategies/backtests", json={"strategy_code": "x", "symbol": "y"}).status_code == 401
+    assert (
+        client.post(
+            "/api/v1/strategies/backtests", json={"strategy_code": "x", "symbol": "y"}
+        ).status_code
+        == 401
+    )
 
 
 def test_catalogue_lists_implemented_strategies_with_hypotheses(client, auth_headers) -> None:
@@ -100,7 +105,9 @@ def test_backtest_persists_trades_equity_and_metrics(client, auth_headers) -> No
     assert metrics["edge_over_baseline"] is not None
     assert metrics["total_costs"] >= 0
     assert metrics["verdict"]
-    assert payload["trade_summary"]["wins"] + payload["trade_summary"]["losses"] == metrics["trades"]
+    assert (
+        payload["trade_summary"]["wins"] + payload["trade_summary"]["losses"] == metrics["trades"]
+    )
 
 
 def test_backtest_records_its_cost_assumptions(client, auth_headers) -> None:
@@ -146,12 +153,24 @@ def test_higher_costs_produce_a_worse_net_return(client, auth_headers) -> None:
     headers = auth_headers()
     cheap = client.post(
         "/api/v1/strategies/backtests",
-        json={"strategy_code": "trend_ma_v1", "symbol": "STR/DRAG", "spread_bps": 0, "commission_bps": 0, "slippage_bps": 0},
+        json={
+            "strategy_code": "trend_ma_v1",
+            "symbol": "STR/DRAG",
+            "spread_bps": 0,
+            "commission_bps": 0,
+            "slippage_bps": 0,
+        },
         headers=headers,
     ).json()
     dear = client.post(
         "/api/v1/strategies/backtests",
-        json={"strategy_code": "trend_ma_v1", "symbol": "STR/DRAG", "spread_bps": 30, "commission_bps": 15, "slippage_bps": 15},
+        json={
+            "strategy_code": "trend_ma_v1",
+            "symbol": "STR/DRAG",
+            "spread_bps": 30,
+            "commission_bps": 15,
+            "slippage_bps": 15,
+        },
         headers=headers,
     ).json()
     assert dear["metrics"]["net_return"] < cheap["metrics"]["net_return"]
@@ -189,7 +208,9 @@ def test_unknown_strategy_and_symbol_are_rejected(client, auth_headers) -> None:
     assert "Unknown strategy" in unknown.json()["detail"]
 
 
-def test_validation_requires_staff_and_a_passing_backtest(client, auth_headers, admin_headers) -> None:
+def test_validation_requires_staff_and_a_passing_backtest(
+    client, auth_headers, admin_headers
+) -> None:
     from app.database.session import SessionLocal
 
     db = SessionLocal()
@@ -204,7 +225,9 @@ def test_validation_requires_staff_and_a_passing_backtest(client, auth_headers, 
 
     # Non-staff cannot validate at all.
     assert (
-        client.post(f"/api/v1/strategies/{target['id']}/validate", json={"note": "x"}, headers=headers).status_code
+        client.post(
+            f"/api/v1/strategies/{target['id']}/validate", json={"note": "x"}, headers=headers
+        ).status_code
         == 403
     )
 

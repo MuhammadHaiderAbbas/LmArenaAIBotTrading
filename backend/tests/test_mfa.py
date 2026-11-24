@@ -48,7 +48,10 @@ def test_a_challenge_token_is_not_a_session_token(client, auth_headers) -> None:
         f"{AUTH}/login", json={"email": "trader@aurex.ai", "password": "Str0ngPass!"}
     ).json()["challenge_token"]
     # It must not work as a bearer token against a protected endpoint.
-    assert client.get("/api/v1/users/me", headers={"Authorization": f"Bearer {challenge}"}).status_code == 401
+    assert (
+        client.get("/api/v1/users/me", headers={"Authorization": f"Bearer {challenge}"}).status_code
+        == 401
+    )
 
 
 def test_the_second_leg_issues_a_session(client, auth_headers) -> None:
@@ -92,9 +95,7 @@ def test_a_recovery_code_works_exactly_once(client, auth_headers) -> None:
 
 
 def test_confirming_without_enrolling_is_refused(client, auth_headers) -> None:
-    response = client.post(
-        f"{AUTH}/mfa/confirm", headers=auth_headers(), json={"code": "123456"}
-    )
+    response = client.post(f"{AUTH}/mfa/confirm", headers=auth_headers(), json={"code": "123456"})
     assert response.status_code == 409
 
 
@@ -118,7 +119,9 @@ def test_disabling_needs_the_password_and_a_code(client, auth_headers) -> None:
     )
     assert (
         client.post(
-            f"{AUTH}/mfa/disable", headers=headers, json={"password": "Str0ngPass!", "code": "000000"}
+            f"{AUTH}/mfa/disable",
+            headers=headers,
+            json={"password": "Str0ngPass!", "code": "000000"},
         ).status_code
         == 401
     )

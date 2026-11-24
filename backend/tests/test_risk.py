@@ -26,7 +26,9 @@ from app.services.risk import breakers, engine
 def make_account(db, email: str, funding: float = 100_000.0) -> TradingAccount:
     user = db.query(User).filter(User.email == email).first()
     if user is None:
-        user = User(email=email, password_hash="x", full_name="Risk", is_active=True, is_verified=True)
+        user = User(
+            email=email, password_hash="x", full_name="Risk", is_active=True, is_verified=True
+        )
         db.add(user)
         db.flush()
     account = TradingAccount(
@@ -110,7 +112,10 @@ def test_ensure_policy_is_idempotent(db_session) -> None:
     first = engine.ensure_policy(db_session, account)
     second = engine.ensure_policy(db_session, account)
     assert first.id == second.id
-    assert db_session.query(RiskPolicy).filter(RiskPolicy.trading_account_id == account.id).count() == 1
+    assert (
+        db_session.query(RiskPolicy).filter(RiskPolicy.trading_account_id == account.id).count()
+        == 1
+    )
 
 
 def test_limits_are_arithmetically_coherent(db_session) -> None:
@@ -133,7 +138,12 @@ def test_a_small_order_is_allowed(db_session) -> None:
     account = make_account(db_session, "small@risk.ai")
     seed(db_session, "RSK/SMALL")
     outcome = engine.evaluate_proposal(
-        db_session, account=account, symbol="RSK/SMALL", side=OrderSide.BUY, quantity=10, price=100.0
+        db_session,
+        account=account,
+        symbol="RSK/SMALL",
+        side=OrderSide.BUY,
+        quantity=10,
+        price=100.0,
     )
     assert outcome.decision == RiskDecision.ALLOW
     assert outcome.approved_quantity == 10
@@ -147,7 +157,12 @@ def test_an_oversized_order_is_reduced_not_refused(db_session) -> None:
     account = make_account(db_session, "reduce@risk.ai")
     seed(db_session, "RSK/REDUCE")
     outcome = engine.evaluate_proposal(
-        db_session, account=account, symbol="RSK/REDUCE", side=OrderSide.BUY, quantity=400, price=100.0
+        db_session,
+        account=account,
+        symbol="RSK/REDUCE",
+        side=OrderSide.BUY,
+        quantity=400,
+        price=100.0,
     )
     assert outcome.decision == RiskDecision.ALLOW_REDUCED
     # 0.5% of 100,000 = 500 risked; a 2% stop means 250 units at 100.
@@ -178,7 +193,12 @@ def test_leverage_is_refused_with_the_numbers(db_session) -> None:
     account = make_account(db_session, "lev@risk.ai", funding=10_000.0)
     seed(db_session, "RSK/LEV")
     outcome = engine.evaluate_proposal(
-        db_session, account=account, symbol="RSK/LEV", side=OrderSide.BUY, quantity=1000, price=100.0
+        db_session,
+        account=account,
+        symbol="RSK/LEV",
+        side=OrderSide.BUY,
+        quantity=1000,
+        price=100.0,
     )
     assert outcome.decision == RiskDecision.REJECT
     assert "leverage" in outcome.reason.lower()
@@ -398,7 +418,12 @@ def test_a_manual_stop_halts_new_risk_and_is_not_cleared_by_a_metric(db_session)
     assert breakers.breaker_state(db_session, account) == BreakerState.MANUAL
 
     outcome = engine.evaluate_proposal(
-        db_session, account=account, symbol="RSK/MANUAL", side=OrderSide.BUY, quantity=1, price=100.0
+        db_session,
+        account=account,
+        symbol="RSK/MANUAL",
+        side=OrderSide.BUY,
+        quantity=1,
+        price=100.0,
     )
     assert outcome.decision == RiskDecision.REJECT
     assert outcome.breached == ["kill_switch"]
@@ -448,7 +473,11 @@ def test_the_stop_cancels_pending_orders(db_session) -> None:
         db_session,
         account=account,
         proposal=Proposal(
-            symbol="RSK/CANCELP", side=OrderSide.BUY, quantity=1, order_type="limit", limit_price=1.0
+            symbol="RSK/CANCELP",
+            side=OrderSide.BUY,
+            quantity=1,
+            order_type="limit",
+            limit_price=1.0,
         ),
     )
     db_session.flush()
@@ -469,7 +498,9 @@ def test_clearing_the_breaker_requires_an_explicit_act_and_is_attributed(db_sess
     with pytest.raises(PermissionError):
         breakers.clear_breaker(db_session, account=account, allow_manual=False)
 
-    row = breakers.clear_breaker(db_session, account=account, actor_id="staff-1", reason="Reviewed.")
+    row = breakers.clear_breaker(
+        db_session, account=account, actor_id="staff-1", reason="Reviewed."
+    )
     assert row is not None
     assert row.cleared_by == "staff-1"
     assert breakers.breaker_state(db_session, account) == BreakerState.CLOSED
@@ -483,7 +514,9 @@ def test_tripping_records_a_critical_event_with_what_was_affected(db_session) ->
 
     event = (
         db_session.query(RiskEvent)
-        .filter(RiskEvent.trading_account_id == account.id, RiskEvent.event_type == "breaker_tripped")
+        .filter(
+            RiskEvent.trading_account_id == account.id, RiskEvent.event_type == "breaker_tripped"
+        )
         .one()
     )
     assert event.severity == "critical"
@@ -513,8 +546,7 @@ def test_an_order_cannot_bypass_the_risk_controller(db_session) -> None:
     # why `test_risk_replaces_the_cheap_check_when_cash_covers_the_order` exists below.
     assert "Insufficient cash" in order.reject_reason
     assert (
-        db_session.query(RiskCheck).filter(RiskCheck.trading_account_id == account.id).count()
-        == 0
+        db_session.query(RiskCheck).filter(RiskCheck.trading_account_id == account.id).count() == 0
     )
 
 
@@ -544,7 +576,9 @@ def test_risk_replaces_the_cheap_check_when_cash_covers_the_order(db_session) ->
     assert "exposure" in order.reject_reason.lower()
     from sqlalchemy import select as _select
 
-    checks = list(db_session.scalars(_select(RiskCheck).where(RiskCheck.trading_account_id == account.id)))
+    checks = list(
+        db_session.scalars(_select(RiskCheck).where(RiskCheck.trading_account_id == account.id))
+    )
     assert len(checks) == 1
     assert checks[0].decision == RiskDecision.REJECT
     assert "max_exposure" in checks[0].breached_rules
@@ -607,7 +641,12 @@ def test_a_sell_is_not_blocked_by_buy_side_limits(db_session) -> None:
     )
     db_session.flush()
     outcome = engine.evaluate_proposal(
-        db_session, account=account, symbol="RSK/SELL", side=OrderSide.SELL, quantity=10, price=100.0
+        db_session,
+        account=account,
+        symbol="RSK/SELL",
+        side=OrderSide.SELL,
+        quantity=10,
+        price=100.0,
     )
     assert outcome.decision == RiskDecision.ALLOW
 
@@ -619,7 +658,12 @@ def test_a_missing_price_is_refused_not_approved(db_session) -> None:
     """Fail-closed: an unvaluable order cannot be risk-checked, so it is refused."""
     account = make_account(db_session, "noprice@risk.ai")
     outcome = engine.evaluate_proposal(
-        db_session, account=account, symbol="RSK/NOPRICE", side=OrderSide.BUY, quantity=1, price=None
+        db_session,
+        account=account,
+        symbol="RSK/NOPRICE",
+        side=OrderSide.BUY,
+        quantity=1,
+        price=None,
     )
     assert outcome.decision == RiskDecision.REJECT
     assert "cannot value" in outcome.reason
@@ -662,7 +706,12 @@ def test_every_decision_carries_its_full_check_trace(db_session) -> None:
     account = make_account(db_session, "trace@risk.ai")
     seed(db_session, "RSK/TRACE")
     outcome = engine.evaluate_proposal(
-        db_session, account=account, symbol="RSK/TRACE", side=OrderSide.BUY, quantity=10, price=100.0
+        db_session,
+        account=account,
+        symbol="RSK/TRACE",
+        side=OrderSide.BUY,
+        quantity=10,
+        price=100.0,
     )
     rules = {check.rule.value for check in outcome.checks}
     assert "max_exposure" in rules

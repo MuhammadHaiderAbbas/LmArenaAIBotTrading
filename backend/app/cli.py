@@ -27,7 +27,18 @@ def _out(payload: dict) -> None:
 def main(argv: list[str] | None = None) -> int:
     args = list(sys.argv[1:] if argv is None else argv)
     if not args or args[0] in {"-h", "--help"}:
-        _out({"commands": ["backup", "backups", "verify <path>", "drill", "audit-verify", "seal-audit"]})
+        _out(
+            {
+                "commands": [
+                    "backup",
+                    "backups",
+                    "verify <path>",
+                    "drill",
+                    "audit-verify",
+                    "seal-audit",
+                ]
+            }
+        )
         return 0
 
     command, *rest = args

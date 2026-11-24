@@ -71,7 +71,9 @@ def test_models_are_listed_with_family_and_determinism(client, auth_headers) -> 
     assert baseline["deterministic"] is True
 
 
-def test_training_creates_a_candidate_and_the_api_cannot_promote_it(client, auth_headers, admin_headers) -> None:
+def test_training_creates_a_candidate_and_the_api_cannot_promote_it(
+    client, auth_headers, admin_headers
+) -> None:
     """The blueprint's rule, end to end over HTTP: training never promotes."""
     from app.database.session import SessionLocal
 
@@ -113,7 +115,9 @@ def test_promotion_requires_staff(client, auth_headers) -> None:
     assert response.status_code == 403
 
 
-def test_promotion_of_a_weak_model_is_refused_with_a_reason(client, auth_headers, admin_headers) -> None:
+def test_promotion_of_a_weak_model_is_refused_with_a_reason(
+    client, auth_headers, admin_headers
+) -> None:
     from app.database.session import SessionLocal
 
     db = SessionLocal()
@@ -206,9 +210,7 @@ def test_reject_moves_a_candidate_out_of_contention(client, auth_headers, admin_
 def test_unknown_version_and_symbol_are_404_and_422(client, auth_headers) -> None:
     headers = auth_headers()
     assert client.get("/api/v1/models/versions/nope", headers=headers).status_code == 404
-    response = client.post(
-        "/api/v1/models/train", json={"symbol": "NOT/REAL"}, headers=headers
-    )
+    response = client.post("/api/v1/models/train", json={"symbol": "NOT/REAL"}, headers=headers)
     assert response.status_code == 422
 
 
@@ -240,9 +242,7 @@ def test_version_summary_gives_a_readable_verdict(client, auth_headers) -> None:
         json={"model_code": "direction_logistic_v1", "symbol": "APT/SUMM"},
         headers=auth_headers(),
     ).json()
-    summary = client.get(
-        f"/api/v1/models/versions/{version['id']}/summary", headers=auth_headers()
-    )
+    summary = client.get(f"/api/v1/models/versions/{version['id']}/summary", headers=auth_headers())
     assert summary.status_code == 200
     payload = summary.json()
     assert "Out-of-sample accuracy" in payload["verdict"]
@@ -314,7 +314,10 @@ def test_ai_desk_reads_a_champion_probability_without_taking_a_stance(
     findings = {item["agent_code"]: item for item in payload["findings"]}
     quantitative = findings["quantitative"]
     assert quantitative["data_available"] is True
-    assert "probability" in quantitative["headline"].lower() or "up-probability" in quantitative["headline"].lower()
+    assert (
+        "probability" in quantitative["headline"].lower()
+        or "up-probability" in quantitative["headline"].lower()
+    )
     # Even with a champion, the agent takes no stance and the run is not tradeable.
     assert quantitative["stance"] == "unknown"
     assert quantitative["confidence_kind"] == "uncalibrated"

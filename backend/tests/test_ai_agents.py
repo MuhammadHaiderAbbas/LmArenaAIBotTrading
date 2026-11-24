@@ -180,7 +180,12 @@ def test_news_agent_refuses_to_convert_text_into_a_direction() -> None:
     """Mapping prose to bullish/bearish needs a validated model; Phase 5 has none."""
     context = make_context(
         research_claims=[
-            {"id": "c1", "text": "Inflation 2.6 percent", "verdict": "supported", "url": "https://e.com/1"}
+            {
+                "id": "c1",
+                "text": "Inflation 2.6 percent",
+                "verdict": "supported",
+                "url": "https://e.com/1",
+            }
         ],
         research_documents=[
             {
