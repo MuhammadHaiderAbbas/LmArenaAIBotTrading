@@ -214,7 +214,7 @@ export function Risk() {
         </Panel>
       </div>
 
-      <Panel className="mt-4" title="Recent risk checks" subtitle="Every decision, with what it was measured against" bodyClassName="p-0">
+      <Panel className="mt-4" title="Recent risk checks" subtitle="Every decision, with what it was measured against" bodyClassName="p-0" scrollBody>
         {checks.length === 0 ? (
           <div className="px-4 py-4">
             <EmptyState

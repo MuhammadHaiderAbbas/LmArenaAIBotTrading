@@ -29,6 +29,8 @@ import type {
   Position,
 } from "../lib/executionTypes";
 import * as demoRisk from "../lib/demo/riskEngine";
+import * as demoAnalytics from "../lib/demo/analyticsEngine";
+import type { PerformanceReport } from "../lib/analyticsTypes";
 import type {
   BreakerState,
   RiskCheckRecord,
@@ -382,6 +384,11 @@ export const api = {
       return order;
     }
     return http<Order>(`/execution/orders/${orderId}/cancel`, { method: "POST" });
+  },
+
+  async analyticsPerformance(): Promise<PerformanceReport> {
+    if (IS_DEMO) return demoAnalytics.report();
+    return http<PerformanceReport>("/analytics/performance");
   },
 
   async riskStatus(): Promise<RiskStatus> {

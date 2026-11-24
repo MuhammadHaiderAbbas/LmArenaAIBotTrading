@@ -374,6 +374,7 @@ function applyToPosition(state: ExecutionState, order: Order): void {
         instrument_symbol: order.instrument_symbol,
         status: "open",
         quantity,
+        closed_quantity: 0,
         average_entry_price: average,
         cost_basis: proceeds,
         realised_pnl: 0,
@@ -407,6 +408,7 @@ function applyToPosition(state: ExecutionState, order: Order): void {
   existing.total_commission += commission;
   existing.last_mark_price = order.average_fill_price;
   if (existing.quantity <= 1e-9) {
+    existing.closed_quantity = quantity;
     existing.quantity = 0;
     existing.cost_basis = 0;
     existing.status = "closed";

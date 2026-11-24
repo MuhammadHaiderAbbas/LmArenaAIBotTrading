@@ -118,7 +118,7 @@ export function Admin() {
       {loading && users.length === 0 ? (
         <Spinner label="Loading administration data" />
       ) : tab === "users" ? (
-        <Panel title="Users" subtitle="Role changes are audited immediately" bodyClassName="p-0">
+        <Panel title="Users" subtitle="Role changes are audited immediately" bodyClassName="p-0" scrollBody>
           <div className="overflow-x-auto">
             <table className="table-base">
               <thead>
@@ -144,7 +144,7 @@ export function Admin() {
                         {row.is_active ? "active" : "suspended"}
                       </Badge>
                     </td>
-                    <td className="whitespace-nowrap text-xs text-ink-faint">
+                    <td className="text-xs text-ink-faint sm:whitespace-nowrap">
                       {row.last_login_at ? relativeTime(row.last_login_at) : "never"}
                     </td>
                     <td className="text-right">
@@ -166,7 +166,7 @@ export function Admin() {
           </div>
         </Panel>
       ) : tab === "audit" ? (
-        <Panel title="Audit trail" subtitle="Append-only record of sensitive actions" bodyClassName="p-0">
+        <Panel title="Audit trail" subtitle="Append-only record of sensitive actions" bodyClassName="p-0" scrollBody>
           {logs.length === 0 ? (
             <div className="p-5">
               <EmptyState title="No audit records" description="Sensitive actions are recorded automatically." />
@@ -187,7 +187,7 @@ export function Admin() {
                 <tbody>
                   {logs.map((log) => (
                     <tr key={log.id}>
-                      <td className="whitespace-nowrap text-xs text-ink-faint">{formatDateTime(log.created_at)}</td>
+                      <td className="text-xs text-ink-faint sm:whitespace-nowrap">{formatDateTime(log.created_at)}</td>
                       <td className="font-mono text-xs text-ink-muted">{log.actor_email ?? "system"}</td>
                       <td className="font-mono text-xs">{log.action}</td>
                       <td className="text-xs text-ink-faint">{log.entity_type ?? "—"}</td>

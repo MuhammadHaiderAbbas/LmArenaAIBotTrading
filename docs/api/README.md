@@ -197,10 +197,23 @@ risk reason in `reject_reason`; the corresponding `/risk/checks` row carries the
 trace. `RiskStatus.closes_positions` is always `false`: the shutdown halts new risk and
 never liquidates, and the contract says so rather than leaving it to be inferred.
 
+## Analytics (Phase 10)
+
+| Method | Path | Auth | Purpose |
+| --- | --- | --- | --- |
+| GET | `/analytics/performance` | bearer | Full report: metrics, curves, benchmark, attribution, costs, trades, notes |
+| GET | `/analytics/trades` | bearer | Closed round trips, FIFO matched, net of commission |
+| GET | `/analytics/equity-curve` | bearer | Marked equity per day, rebuilt from fills |
+
+Every metric is `{key, label, value, unit, definition, note}`. `value` is `null` when
+the sample cannot support the metric and `note` says what is missing — a client must
+render a dash, not a zero. Every report carries `forward_looking: false`, and the
+`notes` array states the report's own caveats.
+
 ## Reserved namespaces (implemented in later phases)
 
-`/signals`, `/trading`, `/orders`, `/positions`, `/portfolio`, `/wallet`,
-`/transactions`, `/analytics`, `/notifications`, `/scheduler`. These routes are
+`/signals`, `/trading`, `/orders`, `/portfolio`, `/wallet`,
+`/transactions`, `/notifications`, `/scheduler`. These routes are
 intentionally absent so no client can assume they exist. Note that `/positions` and
 `/orders` remain reserved at the **top level** even though Phase 8 serves positions and
 orders beneath `/execution`.

@@ -176,7 +176,7 @@ export function Wallet() {
           </div>
         </Panel>
 
-        <Panel className="lg:col-span-2" title="Ledger accounts" subtitle="Chart of accounts for this trading account" bodyClassName="p-0">
+        <Panel className="lg:col-span-2" title="Ledger accounts" subtitle="Chart of accounts for this trading account" bodyClassName="p-0" scrollBody>
           <table className="table-base">
             <thead>
               <tr>
@@ -207,6 +207,7 @@ export function Wallet() {
       <div className="mt-4 grid gap-4 lg:grid-cols-3">
         <Panel
           className="lg:col-span-2"
+          scrollBody
           title="Transaction statement"
           subtitle={statement ? `${statement.total} balanced transactions · immutable journal` : undefined}
           bodyClassName="p-0"
@@ -258,7 +259,7 @@ export function Wallet() {
                           ))}
                         </div>
                       </td>
-                      <td className="whitespace-nowrap text-xs text-ink-faint">
+                      <td className="text-xs text-ink-faint sm:whitespace-nowrap">
                         {formatDateTime(txn.occurred_at)}
                       </td>
                     </tr>

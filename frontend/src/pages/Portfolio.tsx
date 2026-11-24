@@ -38,7 +38,7 @@ export function Portfolio() {
           title="Accounts"
           subtitle="Each account keeps its own chart of accounts and journal"
           bodyClassName="p-0"
-        >
+         scrollBody>
           {loading ? (
             <div className="p-5 text-xs text-ink-muted">Loading accounts…</div>
           ) : accounts.length === 0 ? (
@@ -71,7 +71,7 @@ export function Portfolio() {
                     <td className="cell-num text-right">
                       {formatMoney(account.balances[0]?.equity ?? 0, account.base_currency)}
                     </td>
-                    <td className="whitespace-nowrap text-xs text-ink-faint">
+                    <td className="text-xs text-ink-faint sm:whitespace-nowrap">
                       {formatDate(account.created_at)}
                     </td>
                   </tr>
@@ -109,7 +109,7 @@ export function Portfolio() {
           />
         </Panel>
 
-        <Panel title="Performance" subtitle="Metric definitions are fixed now; values appear once paper trading runs">
+        <Panel title="Performance" subtitle="Metric definitions are fixed now; values appear once paper trading runs" scrollBody>
           <table className="table-base">
             <thead>
               <tr>

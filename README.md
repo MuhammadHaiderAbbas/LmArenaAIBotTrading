@@ -8,13 +8,14 @@ portfolio simulation, deterministic risk controls and automated order execution 
 goal of *identifying statistically defensible opportunities, explaining its reasoning and declining
 to trade when evidence is insufficient*.
 
-> **This repository currently contains Phases 1–9 (Foundation, Accounts, Market Data, Research AI, AI Desk, Model Engineering, Backtesting, Paper Execution, Risk Engine).**
+> **This repository currently contains Phases 1–10 (Foundation, Accounts, Market Data, Research AI, AI Desk, Model Engineering, Backtesting, Paper Execution, Risk Engine, Analytics).**
 > There is no live trading, no broker connection, no payment processing, no customer money and no
 > performance claim anywhere in this codebase. Scope boundaries: [`phase-1.md`](docs/architecture/phase-1.md),
 > [`phase-2.md`](docs/architecture/phase-2.md), [`phase-3.md`](docs/architecture/phase-3.md),
 > [`phase-4.md`](docs/architecture/phase-4.md), [`phase-5.md`](docs/architecture/phase-5.md),
 > [`phase-6.md`](docs/architecture/phase-6.md), [`phase-7.md`](docs/architecture/phase-7.md),
-> [`phase-8.md`](docs/architecture/phase-8.md), [`phase-9.md`](docs/architecture/phase-9.md).
+> [`phase-8.md`](docs/architecture/phase-8.md), [`phase-9.md`](docs/architecture/phase-9.md),
+> [`phase-10.md`](docs/architecture/phase-10.md).
 
 ---
 
@@ -63,7 +64,7 @@ The demo is a product walkthrough, **not** a security boundary and holds no real
 | AI agents (P5) | 6 deterministic specialists (technical, regime, news, portfolio, quality, quantitative); 2 registered as explicitly unbuilt |
 | Orchestrator (P5) | Structured findings with evidence-or-absence, conflict detection, refusal when evidence is thin |
 | AI Desk UI (P5) | Findings with facts/interpretation/uncertainty split, confidence labelled as a rule score, blocked reason shown |
-| DX | Docker Compose (Postgres + Redis + API + web), seed script, 360 backend + 180 frontend tests; CI workflow in `docs/deployment/CI_WORKFLOWS.md` |
+| DX | Docker Compose (Postgres + Redis + API + web), seed script, 392 backend + 226 frontend tests; CI workflow in `docs/deployment/CI_WORKFLOWS.md` |
 
 | Model engineering (P6) | 15 leakage-tested features, forward-only time splits, numpy logistic training, 4-fold walk-forward |
 | Evaluation (P6) | Per-slice metrics with `is_out_of_sample`, majority-class baseline, edge over baseline, Brier, calibration slope and reliability bins |
@@ -85,7 +86,17 @@ The demo is a product walkthrough, **not** a security boundary and holds no real
 | Emergency stop (P9) | Staff-only, cancels pending orders, records exposure left open, and **does not liquidate** — closing positions is a separate policy decision |
 | Risk Centre UI (P9) | Limits with their meaning, live exposure/drawdown, per-decision rule traces, breaker controls, and what the controller is not |
 
-### Explicitly **not** in Phase 9
+| Performance analytics (P10) | Net return, Sharpe, Sortino, max drawdown, win rate, profit factor, turnover and exposure — each computed from recorded fills |
+| Metric honesty (P10) | A metric the sample cannot support is `null` with a reason: no zero Sharpe on three observations, no "infinite" profit factor |
+| Curves (P10) | Marked equity rebuilt from fills (not today's book) against equal-weight buy-and-hold of the instruments actually traded |
+| Attribution (P10) | Realised P&L split by instrument and by the strategy that opened it |
+| Analytics UI (P10) | Equity vs benchmark, cost breakdown, per-metric definitions, the report's own caveats, and what the page refuses to do |
+
+### Explicitly **not** in Phase 10
+
+The autonomous loop, forward projections, an index benchmark, historical exposure
+snapshots, any broker adapter, automatic liquidation, portfolio covariance modelling,
+stop-loss order management, short selling, leverage and deep-learning families.
 
 The autonomous loop, any broker adapter, automatic liquidation, portfolio covariance
 modelling, stop-loss order management, short selling, leverage, parameter

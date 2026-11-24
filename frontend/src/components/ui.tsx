@@ -145,6 +145,7 @@ export function Panel({
   children,
   className,
   bodyClassName,
+  scrollBody = false,
 }: {
   title?: ReactNode;
   subtitle?: ReactNode;
@@ -152,6 +153,14 @@ export function Panel({
   children: ReactNode;
   className?: string;
   bodyClassName?: string;
+  /**
+   * Let the body scroll sideways. Panels clip their content (`overflow-hidden`) so a
+   * table cannot spill out of the rounded corners — which means any table inside a
+   * Panel *must* get its own horizontal scroll container or it is simply cut off on a
+   * narrow screen. This flag exists so that is one decision per panel, not a habit
+   * of remembering.
+   */
+  scrollBody?: boolean;
 }) {
   return (
     <section className={clsx("panel overflow-hidden", className)}>
@@ -164,7 +173,14 @@ export function Panel({
           {actions && <div className="flex shrink-0 items-center gap-2">{actions}</div>}
         </header>
       )}
-      <div className={bodyClassName ?? "p-5"}>{children}</div>
+      <div
+        className={clsx(
+          scrollBody && "overflow-x-auto",
+          bodyClassName ?? "p-5",
+        )}
+      >
+        {children}
+      </div>
     </section>
   );
 }

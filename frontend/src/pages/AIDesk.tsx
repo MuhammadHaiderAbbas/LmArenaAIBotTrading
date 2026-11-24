@@ -268,7 +268,7 @@ export function AIDesk() {
                   ))}
                 </select>
               </label>
-              <label className="flex min-w-[14rem] flex-1 flex-col gap-1 text-2xs text-ink-faint">
+              <label className="flex min-w-0 flex-1 basis-full flex-col gap-1 text-2xs text-ink-faint sm:basis-56">
                 Question (recorded with the run, never obeyed)
                 <input
                   value={question}

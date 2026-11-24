@@ -272,7 +272,7 @@ export function Markets() {
                 />
               </div>
             ) : (
-              <div className="max-h-[560px] overflow-auto">
+              <div className="max-h-[560px] overflow-x-auto overflow-y-auto">
                 <table className="table-base">
                   <thead className="sticky top-0 z-10 bg-surface">
                     <tr>
@@ -505,7 +505,7 @@ export function Markets() {
 
             {quality && (
               <Panel title="Data quality" subtitle="Open findings across the registry">
-                <div className="grid grid-cols-3 gap-2">
+                <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
                   {(["info", "warning", "critical"] as const).map((severity) => (
                     <div key={severity} className="rounded-md border border-line bg-surface-sunken px-3 py-2">
                       <p className="text-[10px] uppercase tracking-wide text-ink-faint">{severity}</p>

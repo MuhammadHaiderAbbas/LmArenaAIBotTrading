@@ -199,6 +199,8 @@ export function Models() {
 
               <div>
                 <p className="label mb-2">Evaluation</p>
+                {/* Not inside a Panel body, so it needs its own scroll container. */}
+                <div className="-mx-1 overflow-x-auto px-1">
                 <table className="table-base">
                   <thead>
                     <tr>
@@ -236,6 +238,7 @@ export function Models() {
                     ))}
                   </tbody>
                 </table>
+                </div>
                 <p className="mt-2 text-[11px] leading-relaxed text-ink-faint">
                   Baseline is the majority-class share. An edge inside ±0.02 is noise, however
                   impressive the accuracy looks.

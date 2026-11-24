@@ -76,6 +76,8 @@ export interface Position {
   instrument_symbol: string;
   status: PositionStatus;
   quantity: number;
+  /** Quantity at the moment the position was closed; zero while open. */
+  closed_quantity: number;
   average_entry_price: number;
   cost_basis: number;
   realised_pnl: number;

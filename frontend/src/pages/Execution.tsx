@@ -279,7 +279,7 @@ export function Execution() {
           title="Open positions"
           subtitle={`${positions.length} open · marked to the latest close`}
           bodyClassName="p-0"
-        >
+         scrollBody>
           {positions.length === 0 ? (
             <div className="px-4 py-4">
               <EmptyState
@@ -338,7 +338,7 @@ export function Execution() {
         </Panel>
       </div>
 
-      <Panel className="mt-4" title="Order history" subtitle="Every state change is recorded" bodyClassName="p-0">
+      <Panel className="mt-4" title="Order history" subtitle="Every state change is recorded" bodyClassName="p-0" scrollBody>
         {orders.length === 0 ? (
           <div className="px-4 py-4">
             <EmptyState title="No orders yet" description="Submit one above to see the lifecycle." />

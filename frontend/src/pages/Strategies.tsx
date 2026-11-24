@@ -258,6 +258,7 @@ export function Strategies() {
                 <div className="grid gap-4 sm:grid-cols-2">
                   <div>
                     <p className="label mb-2">Returns</p>
+                    <div className="overflow-x-auto">
                     <table className="table-base">
                       <tbody>
                         {[
@@ -274,9 +275,11 @@ export function Strategies() {
                         ))}
                       </tbody>
                     </table>
+                    </div>
                   </div>
                   <div>
                     <p className="label mb-2">Risk</p>
+                    <div className="overflow-x-auto">
                     <table className="table-base">
                       <tbody>
                         {[
@@ -294,6 +297,7 @@ export function Strategies() {
                         ))}
                       </tbody>
                     </table>
+                    </div>
                   </div>
                 </div>
 
@@ -314,7 +318,7 @@ export function Strategies() {
           title="Strategy comparison"
           subtitle={`Same instrument, same costs — ${symbol}`}
           bodyClassName="p-0"
-        >
+          scrollBody>
           <table className="table-base">
             <thead>
               <tr>

@@ -164,7 +164,7 @@ export function AuthShell({
       </div>
 
       {/* Form panel */}
-      <div className="flex items-center justify-center px-5 py-12 sm:px-8">
+      <div className="flex items-center justify-center px-4 py-10 sm:px-8 sm:py-12">
         <div className="w-full max-w-sm">
           <div className="mb-8 lg:hidden">
             <p className="text-sm font-semibold tracking-[0.18em] text-white">AUREX AI</p>

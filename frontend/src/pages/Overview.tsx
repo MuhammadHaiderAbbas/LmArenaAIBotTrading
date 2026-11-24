@@ -225,6 +225,7 @@ export function Overview() {
       <div className="mt-4 grid gap-4 xl:grid-cols-3">
         <Panel
           className="xl:col-span-2"
+          scrollBody
           title="Recent ledger activity"
           subtitle="Derived from the double-entry journal — never edited, only compensated"
           actions={
@@ -255,7 +256,7 @@ export function Overview() {
                         </Badge>
                       </td>
                       <td className="max-w-[22rem] truncate text-xs text-ink-muted">{txn.description}</td>
-                      <td className="whitespace-nowrap text-xs text-ink-faint">
+                      <td className="text-xs text-ink-faint sm:whitespace-nowrap">
                         {relativeTime(txn.occurred_at)}
                       </td>
                       <td className="cell-num text-right text-ink-faint">
