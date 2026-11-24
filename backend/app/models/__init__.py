@@ -31,6 +31,7 @@ from app.models.execution import (
     TimeInForce,
 )
 from app.models.identity import User, UserRole, UserSession, UserSettings
+from app.models.integrity import AuditSeal
 from app.models.ledger import (
     LedgerAccount,
     LedgerAccountKind,
@@ -55,6 +56,7 @@ from app.models.market import (
     Timeframe,
     Venue,
 )
+from app.models.mfa import MFARecoveryCode
 from app.models.ml import (
     DriftEvent,
     DriftSeverity,
@@ -212,4 +214,6 @@ __all__ = [
     "RiskEvent",
     "RiskPolicy",
     "RiskRule",
+    "AuditSeal",
+    "MFARecoveryCode",
 ]

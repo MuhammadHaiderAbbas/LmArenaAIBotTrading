@@ -141,7 +141,9 @@ def _roc_auc(y: np.ndarray, scores: np.ndarray) -> float | None:
     return float(auc)
 
 
-def _calibration(y: np.ndarray, probabilities: np.ndarray, bins: int = 10) -> tuple[list[dict[str, float]], float, float, float | None]:
+def _calibration(
+    y: np.ndarray, probabilities: np.ndarray, bins: int = 10
+) -> tuple[list[dict[str, float]], float, float, float | None]:
     """Reliability bins plus a logistic recalibration fit.
 
     The slope answers "does a 70% prediction mean 70%?". A slope well below 1
@@ -181,9 +183,7 @@ def _calibration(y: np.ndarray, probabilities: np.ndarray, bins: int = 10) -> tu
     return reliability, slope, intercept, max_error
 
 
-def evaluate(
-    y: np.ndarray, probabilities: np.ndarray, *, calibrate: bool = False
-) -> Metrics:
+def evaluate(y: np.ndarray, probabilities: np.ndarray, *, calibrate: bool = False) -> Metrics:
     rows = int(y.size)
     metrics = Metrics(rows=rows)
     if rows == 0:
@@ -310,7 +310,11 @@ def summarise(result: TrainingResult) -> str:
     if oos.rows == 0 or oos.accuracy is None:
         return "No out-of-sample rows; the model cannot be judged."
     edge = oos.edge_over_baseline or 0.0
-    folds = [fold["edge_over_baseline"] for fold in result.walk_forward if fold["edge_over_baseline"] is not None]
+    folds = [
+        fold["edge_over_baseline"]
+        for fold in result.walk_forward
+        if fold["edge_over_baseline"] is not None
+    ]
     positive_folds = sum(1 for value in folds if value > 0)
     verdict = (
         f"Out-of-sample accuracy {oos.accuracy:.3f} versus {oos.baseline_accuracy:.3f} "
@@ -333,7 +337,9 @@ def summarise(result: TrainingResult) -> str:
     return verdict
 
 
-def should_promote(result: TrainingResult, *, min_edge: float = 0.02, min_rows: int = 60) -> tuple[bool, str]:
+def should_promote(
+    result: TrainingResult, *, min_edge: float = 0.02, min_rows: int = 60
+) -> tuple[bool, str]:
     """Gate for promotion. Deliberately conservative and deliberately explicit."""
     oos = result.out_of_sample
     if oos.rows < min_rows:
@@ -345,7 +351,11 @@ def should_promote(result: TrainingResult, *, min_edge: float = 0.02, min_rows: 
         )
     if oos.roc_auc is not None and oos.roc_auc < 0.52:
         return False, f"ROC AUC {oos.roc_auc:.3f} is indistinguishable from chance."
-    folds = [fold["edge_over_baseline"] for fold in result.walk_forward if fold["edge_over_baseline"] is not None]
+    folds = [
+        fold["edge_over_baseline"]
+        for fold in result.walk_forward
+        if fold["edge_over_baseline"] is not None
+    ]
     if folds and sum(1 for value in folds if value > 0) < math.ceil(len(folds) * 0.6):
         return False, "Fewer than 60% of walk-forward folds show a positive edge."
     return True, "Meets the out-of-sample gate."

@@ -90,7 +90,8 @@ def macd(
     fast_ema = ema(values, fast)
     slow_ema = ema(values, slow)
     macd_line: list[float | None] = [
-        (f - s) if f is not None and s is not None else None for f, s in zip(fast_ema, slow_ema, strict=False)
+        (f - s) if f is not None and s is not None else None
+        for f, s in zip(fast_ema, slow_ema, strict=False)
     ]
 
     first_valid = next((i for i, value in enumerate(macd_line) if value is not None), None)
@@ -120,7 +121,9 @@ def true_range(highs: list[float], lows: list[float], closes: list[float]) -> li
     return out
 
 
-def atr(highs: list[float], lows: list[float], closes: list[float], period: int = 14) -> list[float | None]:
+def atr(
+    highs: list[float], lows: list[float], closes: list[float], period: int = 14
+) -> list[float | None]:
     """Average True Range with Wilder smoothing."""
     ranges = true_range(highs, lows, closes)
     if len(ranges) < period:

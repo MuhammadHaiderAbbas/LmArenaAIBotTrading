@@ -213,9 +213,7 @@ class YahooProvider(MarketDataProvider):
             open_24h=float(previous_close) if previous_close else None,
             change_24h_pct=change,
             volume_24h=volume,
-            observed_at=(
-                self._utc(observed) if observed else datetime.now(UTC)
-            ),
+            observed_at=(self._utc(observed) if observed else datetime.now(UTC)),
         )
 
     def health(self) -> tuple[bool, str]:

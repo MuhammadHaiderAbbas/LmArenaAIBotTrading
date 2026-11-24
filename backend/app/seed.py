@@ -113,7 +113,9 @@ def main() -> None:
         research = research_registry.seed_sources(db)
         logger.info(
             "research sources: %s created, %s updated (%s total)",
-            research["created"], research["updated"], research["total"],
+            research["created"],
+            research["updated"],
+            research["total"],
         )
 
         created = registry.seed_registry(db)

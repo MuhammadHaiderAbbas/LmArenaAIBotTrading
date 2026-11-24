@@ -132,7 +132,9 @@ def search(db: Session, query: str, filters: SearchFilters | None = None) -> lis
     return _rank(rows, filters, limit=filters.limit, term=term)
 
 
-def _rank(rows: list, filters: SearchFilters, *, limit: int, term: str | None = None) -> list[RetrievedChunk]:
+def _rank(
+    rows: list, filters: SearchFilters, *, limit: int, term: str | None = None
+) -> list[RetrievedChunk]:
     if term is None:
         term = getattr(filters, "_term", "")
     query_tokens = set(vector.tokenise(term))
@@ -251,9 +253,7 @@ def _hydrate(db: Session, rows: list, filters: SearchFilters, document_ids: list
             continue
         sanitised = extraction.sanitise(body)
         document.word_count = max(document.word_count, len(sanitised.text.split()))
-        document.prompt_injection_flags = max(
-            document.prompt_injection_flags, len(sanitised.flags)
-        )
+        document.prompt_injection_flags = max(document.prompt_injection_flags, len(sanitised.flags))
         if sanitised.flags:
             document.injection_detail = ", ".join(sanitised.flags)
         hydrated += 1
@@ -281,19 +281,23 @@ def _hydrate(db: Session, rows: list, filters: SearchFilters, document_ids: list
         # Not licensed to store: analyse in memory. The chunk object is transient
         # and is discarded when the session ends.
         transient = [
-            (ResearchChunk(
-        id=f"transient-{document.id}-{piece.ordinal}",
-        document_id=document.id,
-        ordinal=piece.ordinal,
-        text=piece.text,
-        token_estimate=piece.token_estimate,
-        page=piece.page,
-        section=piece.section or "body",
-        char_start=piece.char_start,
-        char_end=piece.char_end,
-        embedding=vector.serialise(vector.embed(piece.text)),
-        embedding_model=f"{vector.MODEL_NAME}-transient",
-            ), document, source)
+            (
+                ResearchChunk(
+                    id=f"transient-{document.id}-{piece.ordinal}",
+                    document_id=document.id,
+                    ordinal=piece.ordinal,
+                    text=piece.text,
+                    token_estimate=piece.token_estimate,
+                    page=piece.page,
+                    section=piece.section or "body",
+                    char_start=piece.char_start,
+                    char_end=piece.char_end,
+                    embedding=vector.serialise(vector.embed(piece.text)),
+                    embedding_model=f"{vector.MODEL_NAME}-transient",
+                ),
+                document,
+                source,
+            )
             for piece in extraction.chunk_text(sanitised.text)
         ]
         rows = [row for row in rows if row[0].document_id != document.id]
@@ -327,7 +331,11 @@ def _bm25ish(text: str, query_tokens: set[str]) -> float:
 
 
 def _ranks(scores: list[tuple[float, int]]) -> dict[int, int]:
-    ordered = [index for score, index in sorted(scores, key=lambda pair: pair[0], reverse=True) if score > 0]
+    ordered = [
+        index
+        for score, index in sorted(scores, key=lambda pair: pair[0], reverse=True)
+        if score > 0
+    ]
     return {index: rank + 1 for rank, index in enumerate(ordered)}
 
 

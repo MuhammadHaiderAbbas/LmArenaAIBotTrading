@@ -69,10 +69,10 @@ def _document_read(db: Session, document: ResearchDocument, source: SourceRecord
 
 
 @router.get("/sources", response_model=list[SourceRead])
-def list_sources(
-    db: DbSession, user: CurrentUser
-) -> list[SourceRead]:
-    sources = list(db.scalars(select(SourceRecord).order_by(SourceRecord.trust_tier, SourceRecord.code)))
+def list_sources(db: DbSession, user: CurrentUser) -> list[SourceRead]:
+    sources = list(
+        db.scalars(select(SourceRecord).order_by(SourceRecord.trust_tier, SourceRecord.code))
+    )
     if not sources:
         registry.seed_sources(db)
         db.commit()
@@ -83,9 +83,7 @@ def list_sources(
 
 
 @router.get("/overview", response_model=ResearchOverview)
-def overview(
-    db: DbSession, user: CurrentUser
-) -> ResearchOverview:
+def overview(db: DbSession, user: CurrentUser) -> ResearchOverview:
     sources = list(db.scalars(select(SourceRecord)))
     if not sources:
         registry.seed_sources(db)
@@ -95,7 +93,9 @@ def overview(
     documents_total = int(db.scalar(select(func.count(ResearchDocument.id))) or 0)
     flagged = int(
         db.scalar(
-            select(func.count(ResearchDocument.id)).where(ResearchDocument.prompt_injection_flags > 0)
+            select(func.count(ResearchDocument.id)).where(
+                ResearchDocument.prompt_injection_flags > 0
+            )
         )
         or 0
     )
@@ -104,7 +104,9 @@ def overview(
         tier = source.trust_tier.value
         count = int(
             db.scalar(
-                select(func.count(ResearchDocument.id)).where(ResearchDocument.source_id == source.id)
+                select(func.count(ResearchDocument.id)).where(
+                    ResearchDocument.source_id == source.id
+                )
             )
             or 0
         )
@@ -121,7 +123,9 @@ def overview(
 
     top = list(
         db.execute(
-            select(DocumentEntity.kind, DocumentEntity.value, func.count(DocumentEntity.id).label("n"))
+            select(
+                DocumentEntity.kind, DocumentEntity.value, func.count(DocumentEntity.id).label("n")
+            )
             .group_by(DocumentEntity.kind, DocumentEntity.value)
             .order_by(func.count(DocumentEntity.id).desc())
             .limit(10)
@@ -187,9 +191,7 @@ def list_documents(
 
 
 @router.get("/documents/{document_id}", response_model=DocumentRead)
-def get_document(
-    document_id: str, db: DbSession, user: CurrentUser
-) -> DocumentRead:
+def get_document(document_id: str, db: DbSession, user: CurrentUser) -> DocumentRead:
     row = db.execute(
         select(ResearchDocument, SourceRecord)
         .join(SourceRecord, ResearchDocument.source_id == SourceRecord.id)
@@ -220,12 +222,8 @@ def document_chunks(
 
 
 @router.get("/documents/{document_id}/entities", response_model=list[EntityRead])
-def document_entities(
-    document_id: str, db: DbSession, user: CurrentUser
-) -> list[EntityRead]:
-    entities = db.scalars(
-        select(DocumentEntity).where(DocumentEntity.document_id == document_id)
-    )
+def document_entities(document_id: str, db: DbSession, user: CurrentUser) -> list[EntityRead]:
+    entities = db.scalars(select(DocumentEntity).where(DocumentEntity.document_id == document_id))
     return [EntityRead.model_validate(entity) for entity in entities]
 
 
@@ -288,7 +286,9 @@ def _report_detail(db: Session, report: ResearchReport) -> ReportDetail:
                 "confidence": claim.confidence,
                 "evidence_count": claim.evidence_count,
                 "note": claim.note,
-                "citations": [CitationRead.model_validate(citation) for citation in claim.citations],
+                "citations": [
+                    CitationRead.model_validate(citation) for citation in claim.citations
+                ],
             }
         )
         for claim in sorted(report.claims, key=lambda item: item.ordinal)
@@ -303,14 +303,14 @@ def list_reports(
     user: CurrentUser,
     limit: int = Query(default=25, ge=1, le=100),
 ) -> list[ReportRead]:
-    rows = db.scalars(select(ResearchReport).order_by(ResearchReport.created_at.desc()).limit(limit))
+    rows = db.scalars(
+        select(ResearchReport).order_by(ResearchReport.created_at.desc()).limit(limit)
+    )
     return [ReportRead.model_validate(report) for report in rows]
 
 
 @router.get("/reports/{report_id}", response_model=ReportDetail)
-def get_report(
-    report_id: str, db: DbSession, user: CurrentUser
-) -> ReportDetail:
+def get_report(report_id: str, db: DbSession, user: CurrentUser) -> ReportDetail:
     report = db.get(ResearchReport, report_id)
     if report is None:
         raise HTTPException(status.HTTP_404_NOT_FOUND, "Report not found")
@@ -355,9 +355,7 @@ def ingest(
 
 
 @router.post("/sources/seed")
-def seed_sources(
-    db: DbSession, user: StaffUser
-) -> dict[str, int]:
+def seed_sources(db: DbSession, user: StaffUser) -> dict[str, int]:
     result = registry.seed_sources(db)
     db.commit()
     return result

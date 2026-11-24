@@ -116,6 +116,8 @@ def trades(
 
 
 @router.get("/equity-curve", response_model=list[CurvePoint])
-def equity_curve(db: DbSession, user: CurrentUser, account_id: str | None = None) -> list[CurvePoint]:
+def equity_curve(
+    db: DbSession, user: CurrentUser, account_id: str | None = None
+) -> list[CurvePoint]:
     account = _account(db, user, account_id)
     return [CurvePoint(**point) for point in analytics.equity_curve(db, account)]

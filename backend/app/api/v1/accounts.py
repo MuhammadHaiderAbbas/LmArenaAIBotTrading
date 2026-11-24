@@ -90,9 +90,15 @@ def get_ledger(
         .offset(offset)
     )
     transactions = list(db.scalars(stmt))
-    total = len(list(db.scalars(
-        select(LedgerTransaction.id).where(LedgerTransaction.trading_account_id == account.id)
-    )))
+    total = len(
+        list(
+            db.scalars(
+                select(LedgerTransaction.id).where(
+                    LedgerTransaction.trading_account_id == account.id
+                )
+            )
+        )
+    )
     return LedgerStatement(
         account_id=account.id,
         currency=account.base_currency,
@@ -103,7 +109,9 @@ def get_ledger(
 
 
 @router.get("/accounts/{account_id}/ledger/accounts", response_model=list[LedgerAccountRead])
-def get_ledger_accounts(account_id: str, db: DbSession, user: CurrentUser) -> list[LedgerAccountRead]:
+def get_ledger_accounts(
+    account_id: str, db: DbSession, user: CurrentUser
+) -> list[LedgerAccountRead]:
     account = account_service.get_account(db, account_id, user)
     ledger_accounts = ledger_service.ensure_ledger_accounts(db, account)
     db.commit()
@@ -120,7 +128,11 @@ def deposit(
 ) -> AccountDetail:
     account = account_service.get_account(db, account_id, user)
     ledger_service.virtual_deposit(
-        db, account=account, amount=payload.amount, description=payload.description, actor_id=user.id
+        db,
+        account=account,
+        amount=payload.amount,
+        description=payload.description,
+        actor_id=user.id,
     )
     record_audit(
         db,
@@ -147,7 +159,11 @@ def withdraw(
 ) -> AccountDetail:
     account = account_service.get_account(db, account_id, user)
     ledger_service.virtual_withdrawal(
-        db, account=account, amount=payload.amount, description=payload.description, actor_id=user.id
+        db,
+        account=account,
+        amount=payload.amount,
+        description=payload.description,
+        actor_id=user.id,
     )
     record_audit(
         db,

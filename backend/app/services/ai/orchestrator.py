@@ -64,7 +64,9 @@ def _quality_context(db: Session, instrument_id: str | None, now: datetime) -> d
     order = {"ok": 0, "info": 1, "warning": 2, "critical": 3}
     for event in events:
         severity = event.severity.value if hasattr(event.severity, "value") else str(event.severity)
-        kind = event.event_type.value if hasattr(event.event_type, "value") else str(event.event_type)
+        kind = (
+            event.event_type.value if hasattr(event.event_type, "value") else str(event.event_type)
+        )
         issues.append(f"{severity}: {kind} — {event.message}")
         if order.get(severity, 0) > order.get(worst, 0):
             worst = severity
@@ -265,13 +267,17 @@ def build_context(
 ) -> agents.AgentContext:
     now = now or datetime.now(UTC)
     instrument = db.scalar(select(Instrument).where(Instrument.symbol == symbol))
-    timeframe_enum = Timeframe(timeframe) if timeframe in {t.value for t in Timeframe} else Timeframe.D1
+    timeframe_enum = (
+        Timeframe(timeframe) if timeframe in {t.value for t in Timeframe} else Timeframe.D1
+    )
     instrument_id = instrument.id if instrument else None
 
     market = _market_context(db, instrument_id, timeframe_enum)
     indicator_values: dict[str, float | None] = {}
     if market:
-        snap = indicator_service.snapshot(closes=market.closes, highs=market.highs, lows=market.lows)
+        snap = indicator_service.snapshot(
+            closes=market.closes, highs=market.highs, lows=market.lows
+        )
         indicator_values = {
             field: getattr(snap, field)
             for field in (
@@ -310,7 +316,9 @@ def build_context(
     )
 
 
-def _persist_finding(db: Session, run: AgentRun, finding: agents.Finding, ordinal: int) -> AgentFinding:
+def _persist_finding(
+    db: Session, run: AgentRun, finding: agents.Finding, ordinal: int
+) -> AgentFinding:
     row = AgentFinding(
         run_id=run.id,
         agent_code=finding.agent_code,
@@ -346,7 +354,9 @@ def _persist_finding(db: Session, run: AgentRun, finding: agents.Finding, ordina
     return row
 
 
-def _synthesise(findings: list[agents.Finding]) -> tuple[Stance, float | None, bool, str, bool, str]:
+def _synthesise(
+    findings: list[agents.Finding],
+) -> tuple[Stance, float | None, bool, str, bool, str]:
     """Combine findings into a proposal.
 
     Returns (stance, confidence, conflicted, reason, tradeable, blocked_reason).
@@ -372,14 +382,18 @@ def _synthesise(findings: list[agents.Finding]) -> tuple[Stance, float | None, b
     news = next((f for f in findings if f.agent_code == "news"), None)
     regime = next((f for f in findings if f.agent_code == "regime"), None)
 
-    reason_parts: list[str] = [f"Technical: {technical.headline.lower()} ({technical.stance.value})."]
+    reason_parts: list[str] = [
+        f"Technical: {technical.headline.lower()} ({technical.stance.value})."
+    ]
     conflicted = False
 
     # A directional technical read against a high-volatility regime is a conflict
     # of conditions, not of opinion: the platform says so rather than picking one.
     if regime and regime.data_available and "High-volatility" in regime.headline:
         conflicted = True
-        reason_parts.append("Regime: volatility is elevated, which argues against acting on a trend signal alone.")
+        reason_parts.append(
+            "Regime: volatility is elevated, which argues against acting on a trend signal alone."
+        )
 
     if news and news.data_available and news.confidence and technical.confidence:
         # News carries no stance, so it can only ever damp confidence, never set one.
@@ -417,7 +431,14 @@ def _synthesise(findings: list[agents.Finding]) -> tuple[Stance, float | None, b
         "Execution is not enabled: the independent risk controller arrives in Phase 9, "
         "and no order path exists in Phase 5."
     )
-    return (technical.stance, round(confidence, 4), conflicted, " ".join(reason_parts), False, blocked)
+    return (
+        technical.stance,
+        round(confidence, 4),
+        conflicted,
+        " ".join(reason_parts),
+        False,
+        blocked,
+    )
 
 
 def run_agents(
@@ -446,9 +467,7 @@ def run_agents(
     db.add(run)
     db.flush()
 
-    ctx = context or build_context(
-        db, symbol=symbol, timeframe=timeframe, account_id=account_id
-    )
+    ctx = context or build_context(db, symbol=symbol, timeframe=timeframe, account_id=account_id)
 
     findings: list[agents.Finding] = []
     errors: list[str] = []

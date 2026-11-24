@@ -17,6 +17,28 @@ from app.services.errors import DomainError
 logger = logging.getLogger("aurex.api")
 
 
+def _seal_legacy_audit() -> None:
+    """Adopt audit rows written before the hash chain existed.
+
+    Deliberately best-effort: an unmigrated or unreachable database must not stop the
+    process from booting. Failures are logged and the chain reports them honestly later.
+    """
+    from app.database.session import SessionLocal
+    from app.services import integrity
+
+    db = SessionLocal()
+    try:
+        sealed = integrity.seal_pending(db)
+        db.commit()
+        if sealed:
+            logger.info("Adopted %s pre-existing audit entr(y/ies) into the hash chain", sealed)
+    except Exception:  # noqa: BLE001 - startup must survive a cold database
+        db.rollback()
+        logger.exception("Audit-chain adoption skipped; /operations/audit/verify will report it")
+    finally:
+        db.close()
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     logger.info(
@@ -25,6 +47,7 @@ async def lifespan(app: FastAPI):
         settings.LIVE_TRADING_ENABLED,
         settings.REAL_MONEY_ENABLED,
     )
+    _seal_legacy_audit()
     yield
     logger.info("AUREX AI shutting down")
 
@@ -34,7 +57,7 @@ def create_app() -> FastAPI:
         title=f"{settings.PROJECT_NAME} API",
         description=(
             "Autonomous trading and financial intelligence platform.\n\n"
-            "**Phase 1 — Foundation.** Paper trading only. No real money, no live "
+            "**Phase 11 — Security & reliability.** Paper trading only. No real money, no live "
             "broker execution, no profit claims."
         ),
         version="0.1.0",
@@ -70,7 +93,9 @@ def create_app() -> FastAPI:
 
     @app.exception_handler(DomainError)
     async def domain_error_handler(_: Request, exc: DomainError) -> JSONResponse:
-        return JSONResponse(status_code=exc.status_code, content={"detail": exc.message})
+        return JSONResponse(
+            status_code=exc.status_code, content={"detail": exc.message, **exc.extra}
+        )
 
     @app.exception_handler(RequestValidationError)
     async def validation_error_handler(_: Request, exc: RequestValidationError) -> JSONResponse:
@@ -94,7 +119,7 @@ def create_app() -> FastAPI:
         return {
             "name": settings.PROJECT_NAME,
             "version": "0.1.0",
-            "phase": "Phase 1 — Foundation",
+            "phase": "Phase 11 — Security & reliability",
             "docs": "/docs",
             "health": f"{settings.API_V1_PREFIX}/system/health",
             "environment": settings.ENVIRONMENT,

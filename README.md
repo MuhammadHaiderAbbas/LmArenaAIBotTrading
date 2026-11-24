@@ -1,6 +1,6 @@
 # AUREX AI — Autonomous Trading & Financial Intelligence Platform
 
-**Version 0.1.0 · Phases 1–7** · paper trading only · no real money · no broker execution
+**Version 0.1.0 · Phases 1–11** · paper trading only · no real money · no broker execution
 
 AUREX AI is a multi-market quantitative trading and financial research platform. It combines
 market-data ingestion, specialist AI research agents, quantitative models, strategy evaluation,
@@ -8,14 +8,15 @@ portfolio simulation, deterministic risk controls and automated order execution 
 goal of *identifying statistically defensible opportunities, explaining its reasoning and declining
 to trade when evidence is insufficient*.
 
-> **This repository currently contains Phases 1–10 (Foundation, Accounts, Market Data, Research AI, AI Desk, Model Engineering, Backtesting, Paper Execution, Risk Engine, Analytics).**
+> **This repository currently contains Phases 1–11 (Foundation, Accounts, Market Data, Research AI, AI Desk, Model Engineering, Backtesting, Paper Execution, Risk Engine, Analytics, Security & Reliability).**
 > There is no live trading, no broker connection, no payment processing, no customer money and no
 > performance claim anywhere in this codebase. Scope boundaries: [`phase-1.md`](docs/architecture/phase-1.md),
 > [`phase-2.md`](docs/architecture/phase-2.md), [`phase-3.md`](docs/architecture/phase-3.md),
 > [`phase-4.md`](docs/architecture/phase-4.md), [`phase-5.md`](docs/architecture/phase-5.md),
 > [`phase-6.md`](docs/architecture/phase-6.md), [`phase-7.md`](docs/architecture/phase-7.md),
 > [`phase-8.md`](docs/architecture/phase-8.md), [`phase-9.md`](docs/architecture/phase-9.md),
-> [`phase-10.md`](docs/architecture/phase-10.md).
+> [`phase-10.md`](docs/architecture/phase-10.md),
+> [`phase-11.md`](docs/architecture/phase-11.md).
 
 ---
 
@@ -39,7 +40,7 @@ The demo is a product walkthrough, **not** a security boundary and holds no real
 
 ---
 
-## What Phases 1–7 deliver
+## What Phases 1–11 deliver
 
 | Area | Delivered |
 | --- | --- |
@@ -64,7 +65,7 @@ The demo is a product walkthrough, **not** a security boundary and holds no real
 | AI agents (P5) | 6 deterministic specialists (technical, regime, news, portfolio, quality, quantitative); 2 registered as explicitly unbuilt |
 | Orchestrator (P5) | Structured findings with evidence-or-absence, conflict detection, refusal when evidence is thin |
 | AI Desk UI (P5) | Findings with facts/interpretation/uncertainty split, confidence labelled as a rule score, blocked reason shown |
-| DX | Docker Compose (Postgres + Redis + API + web), seed script, 392 backend + 226 frontend tests; CI workflow in `docs/deployment/CI_WORKFLOWS.md` |
+| DX | Docker Compose (Postgres + Redis + API + web), seed script, 480 backend + 255 frontend tests; CI workflow in `docs/deployment/CI_WORKFLOWS.md` |
 
 | Model engineering (P6) | 15 leakage-tested features, forward-only time splits, numpy logistic training, 4-fold walk-forward |
 | Evaluation (P6) | Per-slice metrics with `is_out_of_sample`, majority-class baseline, edge over baseline, Brier, calibration slope and reliability bins |
@@ -91,6 +92,19 @@ The demo is a product walkthrough, **not** a security boundary and holds no real
 | Curves (P10) | Marked equity rebuilt from fills (not today's book) against equal-weight buy-and-hold of the instruments actually traded |
 | Attribution (P10) | Realised P&L split by instrument and by the strategy that opened it |
 | Analytics UI (P10) | Equity vs benchmark, cost breakdown, per-metric definitions, the report's own caveats, and what the page refuses to do |
+| Tamper-evident audit (P11) | Every audit entry sealed into a sha256 hash chain in a separate `audit_seals` table, so an edited *or deleted* row breaks verification and names the first broken sequence |
+| MFA (P11) | RFC 6238 TOTP, single-use recovery codes, and a login that returns a challenge token instead of a session until the second factor is present |
+| Secrets at rest (P11) | Encrypt-then-MAC envelope for persisted secrets; the TOTP secret is never stored readable |
+| Backups & recovery (P11) | Backup, checksum manifest, restore-into-scratch and a recovery drill that fails loudly: `python -m app.cli drill` |
+| Operational monitoring (P11) | Eight checks — stale data, quality events, order bursts, rejection rate, breakers, drift, audit chain, reconciliation — read-only, worst-of status |
+| Operations UI (P11) | `/operations`: finding messages rather than a green tick, the sealed trail, the head digest, and what the page refuses to claim |
+
+### Explicitly **not** in Phase 11
+
+No enforced MFA gate (reported, not blocking), no IP allowlisting, no automated CVE
+scanning in CI, no load test against a production-like deployment, no point-in-time
+recovery, and no real broker credentials for least-privilege rules to apply to. Each of
+these is listed with its reason in [`phase-11.md`](docs/architecture/phase-11.md) §7.
 
 ### Explicitly **not** in Phase 10
 

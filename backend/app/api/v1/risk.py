@@ -77,9 +77,13 @@ def risk_status(db: DbSession, user: CurrentUser, account_id: str | None = None)
         open_positions=len(metrics.open_positions(db, account)),
         drawdown=round(drawdown, 6),
         daily_pnl=round(day_pnl, 4),
-        daily_loss_fraction=round((-day_pnl / total_equity) if total_equity > 0 and day_pnl < 0 else 0.0, 6),
+        daily_loss_fraction=round(
+            (-day_pnl / total_equity) if total_equity > 0 and day_pnl < 0 else 0.0, 6
+        ),
         policy=RiskPolicyRead.model_validate(policy),
-        applied_rules=[rule.value for rule in sorted(engine.SUPPORTED_RULES, key=lambda r: r.value)],
+        applied_rules=[
+            rule.value for rule in sorted(engine.SUPPORTED_RULES, key=lambda r: r.value)
+        ],
         # Named explicitly so the UI can never imply coverage it does not have.
         advisory_rules=[],
         positions_affected=active.positions_affected if active else 0,
@@ -226,7 +230,13 @@ def evaluate(
         reason=outcome.reason,
         breached_rules=outcome.breached,
         checks=[
-            {"rule": c.rule.value, "passed": c.passed, "observed": c.observed, "limit": c.limit, "detail": c.detail}
+            {
+                "rule": c.rule.value,
+                "passed": c.passed,
+                "observed": c.observed,
+                "limit": c.limit,
+                "detail": c.detail,
+            }
             for c in outcome.checks
         ],
         equity=outcome.equity,
@@ -240,7 +250,11 @@ def emergency_stop(
     payload: EmergencyStopRequest, db: DbSession, staff: StaffUser, account_id: str | None = None
 ) -> BreakerRead:
     """The blueprint's shutdown. Halts new risk; says plainly that it does not liquidate."""
-    account = db.scalar(select(TradingAccount).order_by(TradingAccount.created_at)) if account_id is None else db.get(TradingAccount, account_id)
+    account = (
+        db.scalar(select(TradingAccount).order_by(TradingAccount.created_at))
+        if account_id is None
+        else db.get(TradingAccount, account_id)
+    )
     if account is None:
         raise HTTPException(status_code=404, detail="Account not found")
 
@@ -250,12 +264,23 @@ def emergency_stop(
 
 
 @router.post("/resume", response_model=BreakerRead)
-def resume(db: DbSession, staff: StaffUser, account_id: str | None = None, reason: str = "Resumed by an authorised user.") -> BreakerRead:
+def resume(
+    db: DbSession,
+    staff: StaffUser,
+    account_id: str | None = None,
+    reason: str = "Resumed by an authorised user.",
+) -> BreakerRead:
     """Clear a halt. Staff-only, attributed, and impossible to do implicitly."""
-    account = db.scalar(select(TradingAccount).order_by(TradingAccount.created_at)) if account_id is None else db.get(TradingAccount, account_id)
+    account = (
+        db.scalar(select(TradingAccount).order_by(TradingAccount.created_at))
+        if account_id is None
+        else db.get(TradingAccount, account_id)
+    )
     if account is None:
         raise HTTPException(status_code=404, detail="Account not found")
-    row = breakers.clear_breaker(db, account=account, actor_id=staff.id, reason=reason, allow_manual=True)
+    row = breakers.clear_breaker(
+        db, account=account, actor_id=staff.id, reason=reason, allow_manual=True
+    )
     if row is None:
         raise HTTPException(status_code=409, detail="No active circuit breaker to clear.")
     db.commit()
@@ -264,7 +289,10 @@ def resume(db: DbSession, staff: StaffUser, account_id: str | None = None, reaso
 
 @router.get("/breakers", response_model=list[BreakerRead])
 def list_breakers(
-    db: DbSession, user: CurrentUser, account_id: str | None = None, limit: int = Query(default=20, ge=1, le=100)
+    db: DbSession,
+    user: CurrentUser,
+    account_id: str | None = None,
+    limit: int = Query(default=20, ge=1, le=100),
 ) -> list[BreakerRead]:
     account = _account(db, user, account_id)
     rows = db.scalars(
@@ -285,7 +313,10 @@ def overview(db: DbSession, user: CurrentUser, account_id: str | None = None) ->
     reduced = [row for row in checks if row.decision.value == "allow_reduced"]
     events = list(
         db.scalars(
-            select(RiskEvent).where(RiskEvent.trading_account_id == account.id).order_by(RiskEvent.created_at.desc()).limit(5)
+            select(RiskEvent)
+            .where(RiskEvent.trading_account_id == account.id)
+            .order_by(RiskEvent.created_at.desc())
+            .limit(5)
         )
     )
     breach_counts: dict[str, int] = {}
@@ -305,7 +336,9 @@ def overview(db: DbSession, user: CurrentUser, account_id: str | None = None) ->
         policy_version=policy.version,
         limits=policy.limits,
         recent_events=[RiskEventRead.model_validate(row) for row in events],
-        rules_supported=[rule.value for rule in sorted(engine.SUPPORTED_RULES, key=lambda r: r.value)],
+        rules_supported=[
+            rule.value for rule in sorted(engine.SUPPORTED_RULES, key=lambda r: r.value)
+        ],
         # Every enumerated rule the engine does not evaluate. Empty today, and
         # computed rather than hardcoded so it cannot go stale.
         rules_not_implemented=[

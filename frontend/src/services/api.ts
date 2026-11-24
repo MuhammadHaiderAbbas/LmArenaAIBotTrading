@@ -31,6 +31,12 @@ import type {
 import * as demoRisk from "../lib/demo/riskEngine";
 import * as demoAnalytics from "../lib/demo/analyticsEngine";
 import type { PerformanceReport } from "../lib/analyticsTypes";
+import * as demoMonitoring from "../lib/demo/monitoringEngine";
+import type {
+  ChainVerification,
+  HealthReport,
+  SealEntry,
+} from "../lib/demo/monitoringEngine";
 import type {
   BreakerState,
   RiskCheckRecord,
@@ -384,6 +390,37 @@ export const api = {
       return order;
     }
     return http<Order>(`/execution/orders/${orderId}/cancel`, { method: "POST" });
+  },
+
+  async operationsHealth(): Promise<HealthReport> {
+    if (IS_DEMO) return demoMonitoring.healthReport();
+    return http<HealthReport>("/operations/monitoring");
+  },
+
+  async operationsSystemHealth(): Promise<HealthReport> {
+    if (IS_DEMO) return demoMonitoring.healthReport();
+    return http<HealthReport>("/operations/monitoring/system");
+  },
+
+  async operationsAuditVerify(): Promise<ChainVerification> {
+    if (IS_DEMO) return demoMonitoring.verifyChain();
+    return http<ChainVerification>("/operations/audit/verify");
+  },
+
+  async operationsAuditSeal(): Promise<{ sealed: number }> {
+    if (IS_DEMO) {
+      demoMonitoring.record("demo.seal", "Sealed from the Operations page.");
+      return { sealed: 1 };
+    }
+    return http<{ sealed: number }>("/operations/audit/seal", { method: "POST" });
+  },
+
+  async operationsAudit(limit = 20): Promise<{ entries: SealEntry[]; total: number }> {
+    if (IS_DEMO) {
+      const entries = demoMonitoring.chain().slice(-limit).reverse();
+      return { entries, total: entries.length };
+    }
+    return http<{ entries: SealEntry[]; total: number }>(`/operations/audit?limit=${limit}`);
   },
 
   async analyticsPerformance(): Promise<PerformanceReport> {

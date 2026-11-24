@@ -204,7 +204,9 @@ def technical_analyst(context: AgentContext) -> Finding:
             Evidence(
                 kind=EvidenceKind.INDICATOR,
                 label="SMA(20) vs SMA(50)",
-                detail="20-period mean above 50-period mean" if cross > 0 else "20-period mean below 50-period mean",
+                detail="20-period mean above 50-period mean"
+                if cross > 0
+                else "20-period mean below 50-period mean",
                 value=cross * 100,
                 unit="%",
             )
@@ -242,10 +244,14 @@ def technical_analyst(context: AgentContext) -> Finding:
             )
         )
         if rsi >= 70:
-            interpretation.append(f"RSI {rsi:.1f} is in overbought territory; trend may be stretched.")
+            interpretation.append(
+                f"RSI {rsi:.1f} is in overbought territory; trend may be stretched."
+            )
             confidence_reducers.append("momentum reading is extended")
         elif rsi <= 30:
-            interpretation.append(f"RSI {rsi:.1f} is in oversold territory; a bounce is possible but unconfirmed.")
+            interpretation.append(
+                f"RSI {rsi:.1f} is in oversold territory; a bounce is possible but unconfirmed."
+            )
             confidence_reducers.append("momentum reading is extended")
 
     if atr is not None and price:
@@ -288,7 +294,9 @@ def technical_analyst(context: AgentContext) -> Finding:
     confidence = clamp(0.35 + agreement * 0.45)
     if quality != "ok":
         confidence -= 0.15
-        uncertainties.append(f"Data quality for this instrument is '{quality}', lowering confidence.")
+        uncertainties.append(
+            f"Data quality for this instrument is '{quality}', lowering confidence."
+        )
 
     if market.bar_count < 60:
         # Capping, not subtracting: a short history removes corroborating checks,
@@ -420,7 +428,9 @@ def regime_analyst(context: AgentContext) -> Finding:
     confidence = clamp(0.4 + min(len(reference), 60) / 60 * 0.35)
     if len(reference) < 10:
         confidence -= 0.15
-        uncertainties.append("Volatility percentile uses a short reference window; the classification is provisional.")
+        uncertainties.append(
+            "Volatility percentile uses a short reference window; the classification is provisional."
+        )
 
     return Finding(
         agent_code="regime",
@@ -464,11 +474,15 @@ def news_analyst(context: AgentContext) -> Finding:
                     ),
                 )
             ],
-            limitations=["The research corpus is empty for this query; no conclusion can be drawn."],
+            limitations=[
+                "The research corpus is empty for this query; no conclusion can be drawn."
+            ],
         )
 
     supported = [c for c in claims if c.get("verdict") == "supported"]
-    unverified = [c for c in claims if c.get("verdict") in {"unverified", "unsupported", "contradicted"}]
+    unverified = [
+        c for c in claims if c.get("verdict") in {"unverified", "unsupported", "contradicted"}
+    ]
     trusted = [d for d in documents if d.get("source_tier") == "primary"]
 
     facts = [
@@ -515,7 +529,9 @@ def news_analyst(context: AgentContext) -> Finding:
 
     uncertainties: list[str] = []
     if not supported:
-        uncertainties.append("No claim survived verification, so the corpus supports no directional reading.")
+        uncertainties.append(
+            "No claim survived verification, so the corpus supports no directional reading."
+        )
     if context.research_coverage < 0.5:
         uncertainties.append(
             f"Only {context.research_coverage * 100:.0f}% of extracted claims were verified; coverage is thin."
@@ -597,7 +613,9 @@ def portfolio_analyst(context: AgentContext) -> Finding:
             f"Gross exposure is {concentration:.2f}x equity; a held instrument is already a large share of the book."
         )
     if not positions:
-        uncertainties.append("The account holds no positions; any proposal would be an opening trade.")
+        uncertainties.append(
+            "The account holds no positions; any proposal would be an opening trade."
+        )
 
     return Finding(
         agent_code="portfolio",
@@ -665,13 +683,13 @@ def data_quality_finding(context: AgentContext) -> Finding:
         stance=Stance.UNKNOWN,
         confidence=0.9 if state == "ok" else 0.5,
         facts=facts,
-        interpretation=[
-            "Quality is reported before any other agent's evidence is trusted."
-        ],
+        interpretation=["Quality is reported before any other agent's evidence is trusted."],
         uncertainties=["Degraded data lowers the confidence of every finding that depends on it."]
         if state != "ok"
         else [],
-        limitations=["Quality checks are structural (gaps, staleness, outliers), not correctness checks."],
+        limitations=[
+            "Quality checks are structural (gaps, staleness, outliers), not correctness checks."
+        ],
         evidence=evidence,
     )
 
@@ -723,7 +741,9 @@ def quantitative_analyst(context: AgentContext) -> Finding:
         f"Out-of-sample rows {rows}",
     ]
     if accuracy is not None and baseline is not None:
-        facts.append(f"Out-of-sample accuracy {float(accuracy):.3f} vs baseline {float(baseline):.3f}")
+        facts.append(
+            f"Out-of-sample accuracy {float(accuracy):.3f} vs baseline {float(baseline):.3f}"
+        )
     if edge is not None:
         facts.append(f"Edge over majority-class baseline {float(edge):+.3f}")
     if oos_auc is not None:

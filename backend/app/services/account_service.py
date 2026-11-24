@@ -21,7 +21,9 @@ def list_accounts(db: Session, user: User) -> list[TradingAccount]:
     )
 
 
-def get_account(db: Session, account_id: str, user: User, *, allow_admin: bool = True) -> TradingAccount:
+def get_account(
+    db: Session, account_id: str, user: User, *, allow_admin: bool = True
+) -> TradingAccount:
     account = db.get(TradingAccount, account_id)
     if account is None:
         raise NotFoundError("Trading account not found.")
@@ -50,9 +52,7 @@ def create_account(
     # Phase 1 guardrail: paper trading only (blueprint section 18, principle 2).
     environment = Environment.PAPER
     duplicate = db.scalar(
-        select(TradingAccount).where(
-            TradingAccount.user_id == user.id, TradingAccount.name == name
-        )
+        select(TradingAccount).where(TradingAccount.user_id == user.id, TradingAccount.name == name)
     )
     if duplicate is not None:
         raise DomainError(f"You already have an account named '{name}'.", status_code=409)

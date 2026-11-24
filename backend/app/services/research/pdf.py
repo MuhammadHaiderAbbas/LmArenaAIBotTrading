@@ -116,8 +116,7 @@ def _reflow(lines: list[str]) -> str:
     current: list[str] = []
     for line in lines:
         if current and (
-            current[-1].endswith((".", ":", "?", "!", '"', "”"))
-            and line[:1].isupper()
+            current[-1].endswith((".", ":", "?", "!", '"', "”")) and line[:1].isupper()
         ):
             paragraphs.append(" ".join(current))
             current = [line]

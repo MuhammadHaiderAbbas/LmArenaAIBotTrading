@@ -65,9 +65,7 @@ class FillConfig:
     max_bites: int = MAX_FILL_BITES
 
 
-def _current_price(
-    db: Session, symbol: str, timeframe: Timeframe = Timeframe.D1
-) -> float | None:
+def _current_price(db: Session, symbol: str, timeframe: Timeframe = Timeframe.D1) -> float | None:
     instrument = db.scalar(select(Instrument).where(Instrument.symbol == symbol.upper()))
     if instrument is None:
         return None
@@ -213,7 +211,9 @@ def execute_order(
             db,
             account=account,
             transaction_type=(
-                TransactionType.TRADE_BUY if order.side == OrderSide.BUY else TransactionType.TRADE_SELL
+                TransactionType.TRADE_BUY
+                if order.side == OrderSide.BUY
+                else TransactionType.TRADE_SELL
             ),
             lines=(
                 [
@@ -414,9 +414,7 @@ def apply_to_position(
         position.last_marked_at = moment
     else:
         if position is None:
-            raise DomainError(
-                f"No open position in {order.instrument_symbol} to reduce."
-            )
+            raise DomainError(f"No open position in {order.instrument_symbol} to reduce.")
         sold_quantity = sum(fill.quantity for fill in fills)
         proceeds = sum(fill.notional for fill in fills)
         released_basis = min(position.cost_basis, position.average_entry_price * sold_quantity)
@@ -514,7 +512,8 @@ def reconcile_positions(db: Session, *, account: TradingAccount) -> dict:
         "investment_agrees": abs(invested - ledger_investment) <= invested_tolerance,
         "positions_realised": round(realised, 4),
         "ledger_realised": round(ledger_realised, 4),
-        "realised_agrees": abs(realised - ledger_realised) <= max(0.01, abs(ledger_realised) * 1e-6),
+        "realised_agrees": abs(realised - ledger_realised)
+        <= max(0.01, abs(ledger_realised) * 1e-6),
         "open_positions": len(positions),
         "closed_positions": len(all_positions) - len(positions),
         "tolerance": invested_tolerance,

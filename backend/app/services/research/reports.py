@@ -57,9 +57,7 @@ VALUE_VERBS = (
 )
 ASSERTION_RE = re.compile(
     r"(?P<subject>[A-Za-z][A-Za-z0-9 /\-]{2,40}?)\s+"
-    r"(?:(?:" + VALUE_VERBS + r")\s+)?"
-    + VALUE
-    + r"\s?" + UNIT,
+    r"(?:(?:" + VALUE_VERBS + r")\s+)?" + VALUE + r"\s?" + UNIT,
     re.I,
 )
 ARTICLES = frozenset({"the", "a", "an"})
@@ -68,13 +66,39 @@ ARTICLES = frozenset({"the", "a", "an"})
 # been checked against the passage, so "percent" vs "percentage points" must not
 # fail an otherwise verbatim claim.
 UNIT_WORDS = frozenset(
-    {"percent", "percentage", "points", "point", "cent", "pence", "basis", "bps",
-     "billion", "million", "bn"}
+    {
+        "percent",
+        "percentage",
+        "points",
+        "point",
+        "cent",
+        "pence",
+        "basis",
+        "bps",
+        "billion",
+        "million",
+        "bn",
+    }
 )
 # Words too common in this corpus to prove a sentence is on topic.
 GENERIC_TERMS = frozenset(
-    {"bank", "banks", "rate", "rates", "decision", "policy", "policies", "monetary",
-     "market", "markets", "year", "2026", "2025", "board", "committee"}
+    {
+        "bank",
+        "banks",
+        "rate",
+        "rates",
+        "decision",
+        "policy",
+        "policies",
+        "monetary",
+        "market",
+        "markets",
+        "year",
+        "2026",
+        "2025",
+        "board",
+        "committee",
+    }
 )
 # Lowercase words that are legitimately the subject of a sentence in this corpus.
 KNOWN_TERMS = frozenset(
@@ -83,10 +107,38 @@ KNOWN_TERMS = frozenset(
 APOSTROPHE_FRAGMENTS = frozenset({"s", "re", "ve", "ll", "d", "t", "m"})
 LEADING_VERBS = frozenset(
     {
-        "maintain", "maintained", "hold", "held", "keep", "kept", "raise", "raised",
-        "cut", "lower", "lowered", "set", "stay", "stayed", "move", "moved", "leave",
-        "leaving", "voted", "vote", "grew", "grow", "rise", "rose", "fall", "fell",
-        "increase", "increased", "decrease", "decreased", "remain", "remained",
+        "maintain",
+        "maintained",
+        "hold",
+        "held",
+        "keep",
+        "kept",
+        "raise",
+        "raised",
+        "cut",
+        "lower",
+        "lowered",
+        "set",
+        "stay",
+        "stayed",
+        "move",
+        "moved",
+        "leave",
+        "leaving",
+        "voted",
+        "vote",
+        "grew",
+        "grow",
+        "rise",
+        "rose",
+        "fall",
+        "fell",
+        "increase",
+        "increased",
+        "decrease",
+        "decreased",
+        "remain",
+        "remained",
     }
 )
 
@@ -150,16 +202,18 @@ def build_report(
     supported = sum(1 for claim in claims_built if claim.verdict is ClaimVerdict.SUPPORTED)
     partial = sum(1 for claim in claims_built if claim.verdict is ClaimVerdict.PARTIAL)
     unverified = sum(
-        1 for claim in claims_built if claim.verdict in (ClaimVerdict.UNSUPPORTED, ClaimVerdict.UNVERIFIED)
+        1
+        for claim in claims_built
+        if claim.verdict in (ClaimVerdict.UNSUPPORTED, ClaimVerdict.UNVERIFIED)
     )
 
     report.claims_total = len(claims_built)
     report.claims_supported = supported
     report.claims_unverified = unverified
     report.contradictions = _detect_contradictions(db, report, claims_built)
-    report.coverage_score = round(
-        (supported + 0.5 * partial) / len(claims_built), 3
-    ) if claims_built else 0.0
+    report.coverage_score = (
+        round((supported + 0.5 * partial) / len(claims_built), 3) if claims_built else 0.0
+    )
 
     _build_statements(db, report, evidence, claims_built, query)
     report.body_markdown = _render_markdown(report, evidence, claims_built)
@@ -355,7 +409,9 @@ def _extract_assertion(sentence: str) -> str | None:
     return core[:400]
 
 
-def _verify(assertion: str, quote: str, item: retrieval.RetrievedChunk) -> tuple[ClaimVerdict, float, str]:
+def _verify(
+    assertion: str, quote: str, item: retrieval.RetrievedChunk
+) -> tuple[ClaimVerdict, float, str]:
     """Check the claim against the sentence that produced it.
 
     The test is lexical entailment: every content token of the claim must appear
@@ -408,7 +464,11 @@ def _detect_contradictions(db: Session, report: ResearchReport, claims: list[Rep
 
     contradictions = 0
     for subject, group in by_subject.items():
-        values = {re.findall(r"[\d.,]+", claim.text)[0] for claim in group if re.findall(r"[\d.,]+", claim.text)}
+        values = {
+            re.findall(r"[\d.,]+", claim.text)[0]
+            for claim in group
+            if re.findall(r"[\d.,]+", claim.text)
+        }
         if len(values) > 1:
             contradictions += 1
             db.add(
@@ -465,7 +525,11 @@ def _build_statements(
                 0.7,
             )
         )
-    aged = [item for item in evidence if item.published_at is not None and _age_days(item.published_at) > 30]
+    aged = [
+        item
+        for item in evidence
+        if item.published_at is not None and _age_days(item.published_at) > 30
+    ]
     if aged and len(aged) == len(evidence):
         statements.append(
             (
@@ -486,11 +550,7 @@ def _build_statements(
         )
 
     for kind, text, confidence in statements[:MAX_STATEMENTS]:
-        db.add(
-            ReportStatement(
-                report_id=report.id, kind=kind, text=text, confidence=confidence
-            )
-        )
+        db.add(ReportStatement(report_id=report.id, kind=kind, text=text, confidence=confidence))
 
 
 def _age_days(published: datetime) -> int:
@@ -548,9 +608,13 @@ def _render_markdown(
             lines.append(f"{claim.ordinal + 1}. **{claim.text}** — _{badge}_")
             for citation in claim.citations:
                 published = (
-                    citation.published_at.strftime("%d %b %Y") if citation.published_at else "undated"
+                    citation.published_at.strftime("%d %b %Y")
+                    if citation.published_at
+                    else "undated"
                 )
-                lines.append(f"   - [{citation.source_name}]({citation.url}) · {published} · {citation.locator}")
+                lines.append(
+                    f"   - [{citation.source_name}]({citation.url}) · {published} · {citation.locator}"
+                )
                 lines.append(f"     > {citation.quote}")
             if claim.note:
                 lines.append(f"   - _check: {claim.note}_")
@@ -561,7 +625,9 @@ def _render_markdown(
         lines.append("")
         for item in evidence[:10]:
             published = item.published_at.strftime("%d %b %Y") if item.published_at else "undated"
-            lines.append(f"- [{item.title}]({item.url}) — {item.source_name}, {published} ({item.source_tier})")
+            lines.append(
+                f"- [{item.title}]({item.url}) — {item.source_name}, {published} ({item.source_tier})"
+            )
         lines.append("")
 
     return "\n".join(lines)

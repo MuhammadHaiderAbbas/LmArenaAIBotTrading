@@ -75,9 +75,7 @@ class FrankfurterProvider(MarketDataProvider):
         """`GBPUSD` or `GBP/USD` -> ('GBP', 'USD')."""
         cleaned = provider_symbol.replace("/", "").replace("=X", "").upper()
         if len(cleaned) != 6:
-            raise ProviderError(
-                "frankfurter", f"cannot parse FX pair '{provider_symbol}'"
-            )
+            raise ProviderError("frankfurter", f"cannot parse FX pair '{provider_symbol}'")
         return cleaned[:3], cleaned[3:]
 
     # -- protocol ---------------------------------------------------------
@@ -101,9 +99,7 @@ class FrankfurterProvider(MarketDataProvider):
         payload = self._get(f"/{start}..{end}", {"base": base, "symbols": quote})
         rates = payload.get("rates") or {}
         if not rates:
-            raise ProviderError(
-                self.name, f"no reference rates for {base}/{quote} in the window"
-            )
+            raise ProviderError(self.name, f"no reference rates for {base}/{quote} in the window")
 
         series: list[tuple[date, float]] = []
         for day, values in sorted(rates.items()):
@@ -140,13 +136,9 @@ class FrankfurterProvider(MarketDataProvider):
             usd_leg = self._get("/latest", {"base": base, "symbols": TRIANGULATE})
             other_leg = self._get("/latest", {"base": TRIANGULATE, "symbols": quote})
             try:
-                rate = float(usd_leg["rates"][TRIANGULATE]) * float(
-                    other_leg["rates"][quote]
-                )
+                rate = float(usd_leg["rates"][TRIANGULATE]) * float(other_leg["rates"][quote])
             except (KeyError, TypeError) as exc:
-                raise ProviderError(
-                    self.name, f"no rate for {base}/{quote}"
-                ) from exc
+                raise ProviderError(self.name, f"no rate for {base}/{quote}") from exc
 
         return NormalisedQuote(
             last=float(rate),

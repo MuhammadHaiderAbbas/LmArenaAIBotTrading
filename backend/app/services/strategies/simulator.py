@@ -167,9 +167,7 @@ def simulate(
                 elif position["target"] is not None and high >= position["target"]:
                     exit_price, reason = position["target"], ExitReason.TARGET
             if exit_price is not None and reason is not None:
-                trade = _close(
-                    position, exit_price, when, index, reason, costs, equity
-                )
+                trade = _close(position, exit_price, when, index, reason, costs, equity)
                 result.trades.append(trade)
                 equity += trade.net_pnl
                 position = None
@@ -243,7 +241,9 @@ def simulate(
         financing = 0.0
         if position is not None:
             direction_multiplier = 1 if position["direction"] == "long" else -1
-            unrealised = (mark_price - position["entry_price"]) * position["quantity"] * direction_multiplier
+            unrealised = (
+                (mark_price - position["entry_price"]) * position["quantity"] * direction_multiplier
+            )
             financing = costs.financing(position["notional"], 1)
         marked = equity + unrealised - (financing if position is not None else 0.0)
         peak = max(peak, marked)
@@ -288,10 +288,15 @@ def _close(
 ) -> SimTrade:
     """Turn an open position into a realised trade with every cost itemised."""
     direction_enum = Direction.LONG if position["direction"] == "long" else Direction.SHORT
-    exit_fill = costs.exit_price(raw_exit_price, direction_enum) if reason not in (
-        ExitReason.STOP,
-        ExitReason.TARGET,
-    ) else raw_exit_price
+    exit_fill = (
+        costs.exit_price(raw_exit_price, direction_enum)
+        if reason
+        not in (
+            ExitReason.STOP,
+            ExitReason.TARGET,
+        )
+        else raw_exit_price
+    )
     # Stop and target fills already are the traded price; only the spread and slip
     # on the way out are charged, as a cost, so the fill price stays identifiable.
     if reason in (ExitReason.STOP, ExitReason.TARGET):
@@ -310,7 +315,11 @@ def _close(
     # twice would make every strategy look worse than it trades; charging them
     # never would make the cost column a lie. `gross_pnl` below is measured from
     # the *raw* price so the difference is visible.
-    raw_gross = (raw_exit_price - position["unadjusted_entry"]) * position["quantity"] * direction_multiplier
+    raw_gross = (
+        (raw_exit_price - position["unadjusted_entry"])
+        * position["quantity"]
+        * direction_multiplier
+    )
     costs_total = position["commission"] + exit_commission + financing + (raw_gross - gross_pnl)
     net_pnl = gross_pnl - exit_commission - financing
     notional = position["entry_price"] * position["quantity"]
@@ -407,7 +416,11 @@ def compute_metrics(
     # Gross return adds the itemised costs back, which is what the strategy would
     # have returned at zero spread, commission and slippage. The gap between the
     # two is the cost drag, and it is usually the whole story.
-    gross_return = ((final_equity + total_costs) - starting_equity) / starting_equity if starting_equity else 0.0
+    gross_return = (
+        ((final_equity + total_costs) - starting_equity) / starting_equity
+        if starting_equity
+        else 0.0
+    )
 
     metrics = {
         "trades": len(trades),

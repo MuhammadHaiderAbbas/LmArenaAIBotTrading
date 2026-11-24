@@ -85,7 +85,11 @@ def expand(token: str) -> frozenset[str]:
 
 
 def tokenise(text: str) -> list[str]:
-    return [token for token in TOKEN_RE.findall(text.lower()) if token not in STOPWORDS and len(token) > 2]
+    return [
+        token
+        for token in TOKEN_RE.findall(text.lower())
+        if token not in STOPWORDS and len(token) > 2
+    ]
 
 
 def tokenise_expanded(text: str, *, weight: float = 0.5) -> list[str]:

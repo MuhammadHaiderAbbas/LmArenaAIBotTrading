@@ -92,8 +92,29 @@ def register(
     return user
 
 
+class MFARequired(DomainError):
+    """Password was correct, but the account needs a second factor before it gets tokens.
+
+    Carries the challenge token in `extra` so the API can hand it to the client; it is
+    deliberately *not* a session — it opens exactly one endpoint.
+    """
+
+    def __init__(self, challenge_token: str) -> None:
+        super().__init__(
+            "Two-factor authentication is required for this account.",
+            status_code=401,
+            extra={"mfa_required": True, "challenge_token": challenge_token},
+        )
+
+
 def authenticate(
-    db: Session, *, email: str, password: str, request: Request | None = None
+    db: Session,
+    *,
+    email: str,
+    password: str,
+    request: Request | None = None,
+    mfa_code: str | None = None,
+    second_factor_verified: bool = False,
 ) -> tuple[User, TokenPair]:
     email = email.lower().strip()
     user = db.scalar(select(User).where(User.email == email))
@@ -123,6 +144,36 @@ def authenticate(
         db.commit()
         raise DomainError("This account has been suspended.", status_code=403)
 
+    if user.mfa_enabled and not second_factor_verified:
+        from app.core.security import create_mfa_challenge
+        from app.services import mfa
+
+        if not mfa_code:
+            record_audit(
+                db,
+                action="auth.login",
+                actor_id=user.id,
+                actor_email=user.email,
+                outcome="challenge",
+                detail="Second factor requested",
+                request=request,
+            )
+            db.commit()
+            raise MFARequired(create_mfa_challenge(user.id, user.role.value))
+
+        if not mfa.verify(db, user=user, code=mfa_code):
+            record_audit(
+                db,
+                action="auth.login",
+                actor_id=user.id,
+                actor_email=user.email,
+                outcome="failure",
+                detail="Invalid second factor",
+                request=request,
+            )
+            db.commit()
+            raise DomainError("That code is not valid.", status_code=401)
+
     user.last_login_at = datetime.now(UTC)
     tokens = _issue_tokens(db, user, request)
     record_audit(
@@ -135,6 +186,27 @@ def authenticate(
         request=request,
     )
     return user, tokens
+
+
+def issue_session(db: Session, *, user: User, request: Request | None = None) -> TokenPair:
+    """Mint a session for an identity that has already been authenticated.
+
+    Used by the second leg of an MFA login, where the password was checked on the first
+    leg and the challenge token carries that fact.
+    """
+    user.last_login_at = datetime.now(UTC)
+    tokens = _issue_tokens(db, user, request)
+    record_audit(
+        db,
+        action="auth.login",
+        actor_id=user.id,
+        actor_email=user.email,
+        entity_type="user",
+        entity_id=user.id,
+        detail="Second factor verified",
+        request=request,
+    )
+    return tokens
 
 
 def refresh(db: Session, refresh_token: str, request: Request | None = None) -> TokenPair:
@@ -161,7 +233,9 @@ def refresh(db: Session, refresh_token: str, request: Request | None = None) -> 
     return _issue_tokens(db, user, request)
 
 
-def logout(db: Session, user: User, refresh_token: str | None, request: Request | None = None) -> None:
+def logout(
+    db: Session, user: User, refresh_token: str | None, request: Request | None = None
+) -> None:
     if refresh_token:
         session = db.scalar(
             select(UserSession).where(UserSession.token_hash == _hash_refresh(refresh_token))
@@ -178,7 +252,12 @@ def logout(db: Session, user: User, refresh_token: str | None, request: Request 
 
 
 def change_password(
-    db: Session, *, user: User, current_password: str, new_password: str, request: Request | None = None
+    db: Session,
+    *,
+    user: User,
+    current_password: str,
+    new_password: str,
+    request: Request | None = None,
 ) -> None:
     if not verify_password(current_password, user.password_hash):
         raise DomainError("Your current password is incorrect.", status_code=400)

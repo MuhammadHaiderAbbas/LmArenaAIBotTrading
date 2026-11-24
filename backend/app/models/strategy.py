@@ -143,9 +143,7 @@ class Backtest(Base, TimestampMixin):
     warmup_bars: Mapped[int] = mapped_column(Integer, nullable=False, server_default="0")
     data_start: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     data_end: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
-    is_out_of_sample: Mapped[bool] = mapped_column(
-        Boolean, nullable=False, server_default="0"
-    )
+    is_out_of_sample: Mapped[bool] = mapped_column(Boolean, nullable=False, server_default="0")
 
     parameters_snapshot: Mapped[str] = mapped_column(Text, nullable=False, server_default="{}")
     refusal_reason: Mapped[str] = mapped_column(Text, nullable=False, server_default="")

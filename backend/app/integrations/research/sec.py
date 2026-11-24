@@ -100,8 +100,7 @@ class SecEdgarProvider(ResearchProvider):
 
             accession_path = accession.replace("-", "")
             url = (
-                f"https://www.sec.gov/Archives/edgar/data/{int(cik)}/"
-                f"{accession_path}/{document}"
+                f"https://www.sec.gov/Archives/edgar/data/{int(cik)}/{accession_path}/{document}"
                 if document
                 else f"https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK={cik}"
             )

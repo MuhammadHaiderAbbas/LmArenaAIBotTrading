@@ -76,16 +76,12 @@ class FeedProvider(ResearchProvider):
                 ) as client:
                     response = client.get(feed_url)
         except httpx.HTTPError as exc:
-            raise ResearchProviderError(
-                self.name, f"network error: {exc}", retryable=True
-            ) from exc
+            raise ResearchProviderError(self.name, f"network error: {exc}", retryable=True) from exc
 
         if response.status_code == 404:
             raise ResearchProviderError(self.name, "feed not found (HTTP 404)")
         if response.status_code == 429:
-            raise ResearchProviderError(
-                self.name, "rate limited by publisher", retryable=True
-            )
+            raise ResearchProviderError(self.name, "rate limited by publisher", retryable=True)
         if response.status_code >= 400:
             raise ResearchProviderError(
                 self.name, f"HTTP {response.status_code} from publisher", retryable=True

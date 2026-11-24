@@ -114,7 +114,9 @@ class Agent(Base, TimestampMixin):
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid)
     code: Mapped[str] = mapped_column(String(40), unique=True, nullable=False)
     name: Mapped[str] = mapped_column(String(120), nullable=False)
-    role: Mapped[AgentRole] = mapped_column(Enum(AgentRole, native_enum=False, length=24), nullable=False)
+    role: Mapped[AgentRole] = mapped_column(
+        Enum(AgentRole, native_enum=False, length=24), nullable=False
+    )
     description: Mapped[str] = mapped_column(Text, default="")
     status: Mapped[AgentStatus] = mapped_column(
         Enum(AgentStatus, native_enum=False, length=16), default=AgentStatus.ACTIVE, nullable=False
@@ -176,7 +178,9 @@ class AgentFinding(Base, TimestampMixin):
     __table_args__ = (UniqueConstraint("run_id", "agent_code", name="uq_finding_run_agent"),)
 
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid)
-    run_id: Mapped[str] = mapped_column(ForeignKey("ai_runs.id", ondelete="CASCADE"), nullable=False)
+    run_id: Mapped[str] = mapped_column(
+        ForeignKey("ai_runs.id", ondelete="CASCADE"), nullable=False
+    )
     agent_code: Mapped[str] = mapped_column(String(40), nullable=False)
     ordinal: Mapped[int] = mapped_column(Integer, default=0)
     headline: Mapped[str] = mapped_column(Text, default="")

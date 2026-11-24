@@ -222,7 +222,12 @@ def ingest_source(
     db.flush()
 
     logger.info(
-        "research %s: seen=%s new=%s dup=%s rejected=%s", source.code, seen, new, duplicates, rejected
+        "research %s: seen=%s new=%s dup=%s rejected=%s",
+        source.code,
+        seen,
+        new,
+        duplicates,
+        rejected,
     )
     return run
 
@@ -286,9 +291,25 @@ def extraction_method_for(source: SourceRecord, item) -> object:
 
 CHROME_TITLES = frozenset(
     {
-        "close dialog", "close", "skip to main content", "skip to content", "menu",
-        "search", "share", "home", "back", "next", "previous", "more", "read more",
-        "sign in", "log in", "subscribe", "cookies", "advertisement", "loading",
+        "close dialog",
+        "close",
+        "skip to main content",
+        "skip to content",
+        "menu",
+        "search",
+        "share",
+        "home",
+        "back",
+        "next",
+        "previous",
+        "more",
+        "read more",
+        "sign in",
+        "log in",
+        "subscribe",
+        "cookies",
+        "advertisement",
+        "loading",
     }
 )
 

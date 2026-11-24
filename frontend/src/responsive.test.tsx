@@ -16,6 +16,7 @@ import { MemoryRouter } from "react-router-dom";
 import { AIDesk } from "./pages/AIDesk";
 import { Admin } from "./pages/Admin";
 import { Analytics } from "./pages/Analytics";
+import { Operations } from "./pages/Operations";
 import { Execution } from "./pages/Execution";
 import { History } from "./pages/History";
 import { Markets } from "./pages/Markets";
@@ -86,6 +87,7 @@ const PAGES: [string, ReactElement][] = [
   ["Wallet", <Wallet />],
   ["History", <History />],
   ["Analytics", <Analytics />],
+  ["Operations", <Operations />],
   ["Settings", <Settings />],
   ["Admin", <Admin />],
 ];

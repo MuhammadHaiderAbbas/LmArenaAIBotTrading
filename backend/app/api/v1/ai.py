@@ -59,7 +59,9 @@ def seed_agents_endpoint(db: DbSession, user: StaffUser) -> dict:
 
 
 @router.get("/overview", response_model=AIOverview)
-def overview(db: DbSession, user: CurrentUser, days: int = Query(default=30, ge=1, le=365)) -> AIOverview:
+def overview(
+    db: DbSession, user: CurrentUser, days: int = Query(default=30, ge=1, le=365)
+) -> AIOverview:
     since = datetime.now(UTC) - timedelta(days=days)
     total = int(db.scalar(select(func.count(AgentRun.id)).where(AgentRun.created_at >= since)) or 0)
     completed = int(
@@ -97,15 +99,9 @@ def overview(db: DbSession, user: CurrentUser, days: int = Query(default=30, ge=
         or 0
     )
     agents = list(db.scalars(select(Agent)))
-    latest = list(
-        db.scalars(select(AgentRun).order_by(AgentRun.created_at.desc()).limit(8))
-    )
+    latest = list(db.scalars(select(AgentRun).order_by(AgentRun.created_at.desc()).limit(8)))
     stances: dict[str, int] = {}
-    for value in (
-        db.scalars(
-            select(AgentRun.proposal_stance).where(AgentRun.created_at >= since)
-        )
-    ):
+    for value in db.scalars(select(AgentRun.proposal_stance).where(AgentRun.created_at >= since)):
         key = value.value if hasattr(value, "value") else str(value)
         stances[key] = stances.get(key, 0) + 1
     return AIOverview(
@@ -158,9 +154,7 @@ def create_run(
 
         account = db.get(TradingAccount, payload.account_id)
         if account is None or account.user_id != user.id:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND, detail="Account not found"
-            )
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Account not found")
 
     run = orchestrator.run_agents(
         db,

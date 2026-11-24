@@ -120,16 +120,22 @@ def trend_following(bars: Bars, *, fast: int = 20, slow: int = 60) -> list[Signa
             continue
         if fast_value > slow_value:
             signals.append(
-                Signal(Direction.LONG, f"SMA{fast} {fast_value:.4f} above SMA{slow} {slow_value:.4f}")
+                Signal(
+                    Direction.LONG, f"SMA{fast} {fast_value:.4f} above SMA{slow} {slow_value:.4f}"
+                )
             )
         else:
             signals.append(
-                Signal(Direction.FLAT, f"SMA{fast} {fast_value:.4f} below SMA{slow} {slow_value:.4f}")
+                Signal(
+                    Direction.FLAT, f"SMA{fast} {fast_value:.4f} below SMA{slow} {slow_value:.4f}"
+                )
             )
     return signals
 
 
-def mean_reversion(bars: Bars, *, period: int = 20, entry_z: float = 1.5, exit_z: float = 0.3) -> list[Signal]:
+def mean_reversion(
+    bars: Bars, *, period: int = 20, entry_z: float = 1.5, exit_z: float = 0.3
+) -> list[Signal]:
     """Long when price is `entry_z` standard deviations *below* its mean.
 
     The mirror image of trend following: it should lose in a strong trend and win

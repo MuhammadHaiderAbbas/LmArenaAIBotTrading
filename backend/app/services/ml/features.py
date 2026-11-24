@@ -131,8 +131,16 @@ def build_matrix(
     average you could not yet compute invents information.
     """
     if not closes:
-        return FeatureMatrix(FEATURE_NAMES, np.zeros((0, len(FEATURE_NAMES))), np.zeros(0), [], np.zeros(0, dtype=bool))
-    if not (len(opens) == len(highs) == len(lows) == len(closes) == len(volumes) == len(timestamps)):
+        return FeatureMatrix(
+            FEATURE_NAMES,
+            np.zeros((0, len(FEATURE_NAMES))),
+            np.zeros(0),
+            [],
+            np.zeros(0, dtype=bool),
+        )
+    if not (
+        len(opens) == len(highs) == len(lows) == len(closes) == len(volumes) == len(timestamps)
+    ):
         raise ValueError("OHLCV and timestamp series must be the same length")
 
     close = np.asarray(closes, dtype=float)
@@ -195,7 +203,9 @@ def build_matrix(
             # produce NaN: some FX and crypto feeds report a flat volume column,
             # and one dead feature would make the instrument untrainable.
             # Zero here means "at the average", which is literally true.
-            ((volume[index] - volume_mean[index]) / volume_std[index]) if volume_std[index] else 0.0,
+            ((volume[index] - volume_mean[index]) / volume_std[index])
+            if volume_std[index]
+            else 0.0,
         )
 
     labels = np.full(rows, -1, dtype=int)
@@ -214,7 +224,9 @@ def build_matrix(
     return FeatureMatrix(FEATURE_NAMES, features, labels, list(timestamps), usable)
 
 
-def chronological_split(usable_index: np.ndarray, *, train: float = 0.6, validation: float = 0.2) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
+def chronological_split(
+    usable_index: np.ndarray, *, train: float = 0.6, validation: float = 0.2
+) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
     """Split by time, never at random.
 
     A random split on time-series data leaks: rows on either side of the boundary
@@ -240,8 +252,15 @@ def describe(features: np.ndarray, names: tuple[str, ...]) -> list[dict[str, obj
         values = values[~np.isnan(values)]
         if values.size == 0:
             summaries.append(
-                {"feature": name, "count": 0, "mean": None, "std": None,
-                 "minimum": None, "maximum": None, "deciles": []}
+                {
+                    "feature": name,
+                    "count": 0,
+                    "mean": None,
+                    "std": None,
+                    "minimum": None,
+                    "maximum": None,
+                    "deciles": [],
+                }
             )
             continue
         summaries.append(

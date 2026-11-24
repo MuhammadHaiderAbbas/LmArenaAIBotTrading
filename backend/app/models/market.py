@@ -160,9 +160,7 @@ class InstrumentProvider(Base, TimestampMixin):
     """Maps an instrument to a provider's identifier, with routing priority."""
 
     __tablename__ = "instrument_providers"
-    __table_args__ = (
-        UniqueConstraint("instrument_id", "provider", name="uq_instrument_provider"),
-    )
+    __table_args__ = (UniqueConstraint("instrument_id", "provider", name="uq_instrument_provider"),)
 
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid)
     instrument_id: Mapped[str] = mapped_column(

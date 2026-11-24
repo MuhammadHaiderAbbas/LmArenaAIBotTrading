@@ -36,16 +36,40 @@ from app.services.research import extraction, pdf
 # news index as an article body, which put navigation text into the evidence pool
 # and made every claim look unsupported.
 LISTING_MARKERS = (
-    "published on", "see all", "view all", "load more", "next page", "previous page",
-    "sort by", "filter by", "results per page", "skip to main content",
+    "published on",
+    "see all",
+    "view all",
+    "load more",
+    "next page",
+    "previous page",
+    "sort by",
+    "filter by",
+    "results per page",
+    "skip to main content",
 )
 
 BOILERPLATE = (
-    "cookie", "subscribe", "sign up", "newsletter", "all rights reserved",
-    "share this", "follow us", "advertisement", "javascript", "enable cookies",
-    "privacy policy", "terms of use", "download the app", "log in", "sign in",
-    "this video can not be played", "this video cannot be played", "watch live",
-    "this content is not available", "getty images", "image source",
+    "cookie",
+    "subscribe",
+    "sign up",
+    "newsletter",
+    "all rights reserved",
+    "share this",
+    "follow us",
+    "advertisement",
+    "javascript",
+    "enable cookies",
+    "privacy policy",
+    "terms of use",
+    "download the app",
+    "log in",
+    "sign in",
+    "this video can not be played",
+    "this video cannot be played",
+    "watch live",
+    "this content is not available",
+    "getty images",
+    "image source",
 )
 
 PARAGRAPH_RE = re.compile(r"<(?:p|div|li|h[1-6])[^>]*>(.*?)</(?:p|div|li|h[1-6])>", re.I | re.S)
@@ -68,9 +92,7 @@ def fetch_body(url: str, *, timeout: float = 20.0, client=None, expect_title: st
         if client is not None:
             response = client.get(url, headers=HEADERS)
         else:
-            with httpx.Client(
-                timeout=timeout, headers=HEADERS, follow_redirects=True
-            ) as session:
+            with httpx.Client(timeout=timeout, headers=HEADERS, follow_redirects=True) as session:
                 response = session.get(url)
     except httpx.HTTPError as exc:
         raise BodyFetchError(url, f"network error: {exc}") from exc
@@ -100,6 +122,7 @@ def fetch_body(url: str, *, timeout: float = 20.0, client=None, expect_title: st
 
 def _title_present(html: str, text: str, expect_title: str) -> bool:
     """Compare the expected headline with the page's title or opening text."""
+
     def normalise(value: str) -> set[str]:
         return {word for word in re.findall(r"[a-z]+", value.lower()) if len(word) > 3}
 
@@ -127,7 +150,9 @@ def looks_like_listing(text: str) -> bool:
     lowered = text.lower()
     hits = sum(1 for marker in LISTING_MARKERS if marker in lowered)
     # Index pages repeat the same link text; articles repeat sentences rarely.
-    sentences = [segment.strip() for segment in re.split(r"[.!?]", text) if len(segment.strip()) > 20]
+    sentences = [
+        segment.strip() for segment in re.split(r"[.!?]", text) if len(segment.strip()) > 20
+    ]
     unique_ratio = len(set(sentences)) / max(len(sentences), 1)
     return hits >= 2 or (unique_ratio < 0.75 and hits >= 1)
 

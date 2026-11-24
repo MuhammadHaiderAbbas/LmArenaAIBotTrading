@@ -112,7 +112,9 @@ def _quote_read(quote: MarketQuote | None) -> QuoteRead | None:
         provider=quote.provider,
         observed_at=quote.observed_at,
         received_at=quote.received_at,
-        age_seconds=round((datetime.now(UTC) - quote.observed_at.astimezone(UTC)).total_seconds(), 1),
+        age_seconds=round(
+            (datetime.now(UTC) - quote.observed_at.astimezone(UTC)).total_seconds(), 1
+        ),
     )
 
 
@@ -141,7 +143,9 @@ def _indicator_read(rows: list[MarketCandle]) -> IndicatorRead:
         highs=[float(row.high) for row in rows],
         lows=[float(row.low) for row in rows],
     )
-    return IndicatorRead(**{field: getattr(snapshot, field) for field in IndicatorRead.model_fields})
+    return IndicatorRead(
+        **{field: getattr(snapshot, field) for field in IndicatorRead.model_fields}
+    )
 
 
 def _quality_state(db: DbSession, instrument_id: str) -> str:
@@ -249,15 +253,18 @@ def get_candles(
 ) -> CandleSeries:
     instrument = _get_instrument(db, symbol)
     rows = _load_candles(db, instrument.id, timeframe, limit)
-    open_events = db.scalar(
-        select(func.count())
-        .select_from(DataQualityEvent)
-        .where(
-            DataQualityEvent.instrument_id == instrument.id,
-            DataQualityEvent.timeframe == timeframe,
-            DataQualityEvent.resolved.is_(False),
+    open_events = (
+        db.scalar(
+            select(func.count())
+            .select_from(DataQualityEvent)
+            .where(
+                DataQualityEvent.instrument_id == instrument.id,
+                DataQualityEvent.timeframe == timeframe,
+                DataQualityEvent.resolved.is_(False),
+            )
         )
-    ) or 0
+        or 0
+    )
 
     is_stale = False
     if rows:
@@ -329,9 +336,7 @@ def quality_summary(db: DbSession, _: CurrentUser) -> QualitySummary:
 
     symbols: list[str] = []
     if stale_ids:
-        symbols = list(
-            db.scalars(select(Instrument.symbol).where(Instrument.id.in_(stale_ids)))
-        )
+        symbols = list(db.scalars(select(Instrument.symbol).where(Instrument.id.in_(stale_ids))))
 
     return QualitySummary(
         total_open=len(open_events),
@@ -364,11 +369,14 @@ def provider_health(db: DbSession, _: CurrentUser) -> list[ProviderHealth]:
     results: list[ProviderHealth] = []
     for name, provider in ingestion.PROVIDERS.items():
         healthy, message = provider.health()
-        covered = db.scalar(
-            select(func.count())
-            .select_from(InstrumentProvider)
-            .where(InstrumentProvider.provider == name)
-        ) or 0
+        covered = (
+            db.scalar(
+                select(func.count())
+                .select_from(InstrumentProvider)
+                .where(InstrumentProvider.provider == name)
+            )
+            or 0
+        )
         results.append(
             ProviderHealth(
                 provider=name,
@@ -389,9 +397,7 @@ def ingestion_runs(
     _: CurrentUser,
     limit: int = Query(default=50, ge=1, le=200),
 ) -> list[IngestionRunRead]:
-    runs = db.scalars(
-        select(IngestionRun).order_by(IngestionRun.started_at.desc()).limit(limit)
-    )
+    runs = db.scalars(select(IngestionRun).order_by(IngestionRun.started_at.desc()).limit(limit))
     return [IngestionRunRead.model_validate(run) for run in runs]
 
 
@@ -485,9 +491,7 @@ def sync_market_data(
 
 
 @router.post("/registry/seed", response_model=dict)
-def reseed_registry(
-    request: Request, db: DbSession, user: StaffUser
-) -> dict[str, int]:
+def reseed_registry(request: Request, db: DbSession, user: StaffUser) -> dict[str, int]:
     """Re-apply the declarative instrument registry (idempotent)."""
     created = registry.seed_registry(db)
     record_audit(

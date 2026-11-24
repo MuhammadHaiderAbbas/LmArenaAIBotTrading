@@ -50,8 +50,9 @@ class TwelveDataProvider(MarketDataProvider):
     supported_timeframes = tuple(INTERVALS)
     max_bars_per_request = 5000
 
-    def __init__(self, api_key: str | None = None, client: httpx.Client | None = None,
-                 timeout: float = 15.0) -> None:
+    def __init__(
+        self, api_key: str | None = None, client: httpx.Client | None = None, timeout: float = 15.0
+    ) -> None:
         self._api_key = api_key or os.getenv("TWELVEDATA_API_KEY", DEMO_KEY)
         self._client = client
         self._timeout = timeout

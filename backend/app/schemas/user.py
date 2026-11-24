@@ -81,6 +81,22 @@ class UserSettingsRead(BaseModel):
 class LoginRequest(BaseModel):
     email: EmailStr
     password: str = Field(min_length=1, max_length=128)
+    # Present only on the second call, after the server answered `mfa_required`.
+    mfa_code: str | None = Field(default=None, max_length=32)
+
+
+class MFAEnrolRequest(BaseModel):
+    code: str = Field(min_length=6, max_length=32)
+
+
+class MFADisableRequest(BaseModel):
+    password: str = Field(min_length=1, max_length=128)
+    code: str = Field(min_length=6, max_length=32)
+
+
+class MFAVerifyRequest(BaseModel):
+    challenge_token: str = Field(min_length=10)
+    code: str = Field(min_length=6, max_length=32)
 
 
 class TokenPair(BaseModel):

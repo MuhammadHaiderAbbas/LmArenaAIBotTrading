@@ -17,8 +17,10 @@ _buckets: dict[str, deque[float]] = defaultdict(deque)
 
 def _client_key(request: Request, scope: str) -> str:
     forwarded = request.headers.get("x-forwarded-for")
-    ip = forwarded.split(",")[0].strip() if forwarded else (
-        request.client.host if request.client else "unknown"
+    ip = (
+        forwarded.split(",")[0].strip()
+        if forwarded
+        else (request.client.host if request.client else "unknown")
     )
     return f"{scope}:{ip}"
 

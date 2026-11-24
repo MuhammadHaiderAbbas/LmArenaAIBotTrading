@@ -495,7 +495,7 @@ export const demoApi = {
     return {
       name: "AUREX AI",
       version: "0.1.0",
-      phase: "Phase 10 — Analytics (static demo)",
+      phase: "Phase 11 — Security & reliability (static demo)",
       environment: "demo",
       execution_mode: "paper",
       live_trading_enabled: false,

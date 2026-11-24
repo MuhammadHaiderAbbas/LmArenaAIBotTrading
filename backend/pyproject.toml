@@ -14,6 +14,9 @@ ignore = ["S101", "B008", "UP042", "E501"]
 [tool.ruff.lint.per-file-ignores]
 "tests/*" = ["S105", "S106", "S110"]
 "app/core/config.py" = ["S105", "S107"]
+# The backup module shells out to pg_dump and counts rows in a verified copy by table
+# name taken from sqlite_master — neither takes input from a request.
+"app/services/backup.py" = ["S603", "S607", "S608"]
 
 [tool.mypy]
 python_version = "3.11"

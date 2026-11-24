@@ -22,11 +22,11 @@ if TYPE_CHECKING:
 
 
 class LedgerAccountType(str, enum.Enum):
-    ASSET = "asset"          # cash held for the account
+    ASSET = "asset"  # cash held for the account
     LIABILITY = "liability"  # withdrawal clearing
-    EQUITY = "equity"        # opening equity / P&L attributable to owner
-    INCOME = "income"        # realised trading profit
-    EXPENSE = "expense"      # fees
+    EQUITY = "equity"  # opening equity / P&L attributable to owner
+    INCOME = "income"  # realised trading profit
+    EXPENSE = "expense"  # fees
 
 
 class LedgerAccountKind(str, enum.Enum):

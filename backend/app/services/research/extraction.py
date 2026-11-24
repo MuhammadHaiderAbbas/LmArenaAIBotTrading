@@ -33,14 +33,41 @@ HEADING_RE = re.compile(r"^(?:[A-Z][A-Za-z0-9 ,&/\-]{2,80})$")
 # too, which is why a finding quarantines nothing on its own and is always
 # surfaced rather than silently acted on.
 INJECTION_PATTERNS: tuple[tuple[str, re.Pattern[str]], ...] = (
-    ("instruction_override", re.compile(
-        r"\b(ignore|disregard|forget)\b[^.]{0,40}\b(previous|prior|above|earlier)\b[^.]{0,30}"
-        r"\b(instruction|prompt|rule|direction)", re.I)),
-    ("role_hijack", re.compile(r"\byou are now\b|\bact as (?:an?|the)\b[^.]{0,40}\b(admin|system|developer)", re.I)),
-    ("system_prompt_probe", re.compile(r"\b(system prompt|initial prompt|developer message)\b", re.I)),
-    ("tool_invocation", re.compile(r"\b(execute|run|eval)\s+(?:the\s+)?(?:command|code|script|tool)\b", re.I)),
-    ("exfiltration", re.compile(r"\b(send|post|upload|exfiltrate)\b[^.]{0,40}\b(api[_ ]?key|token|credential|password)", re.I)),
-    ("credential_request", re.compile(r"\b(provide|enter|paste|supply)\b[^.]{0,30}\b(api[_ ]?key|password|secret)\b", re.I)),
+    (
+        "instruction_override",
+        re.compile(
+            r"\b(ignore|disregard|forget)\b[^.]{0,40}\b(previous|prior|above|earlier)\b[^.]{0,30}"
+            r"\b(instruction|prompt|rule|direction)",
+            re.I,
+        ),
+    ),
+    (
+        "role_hijack",
+        re.compile(
+            r"\byou are now\b|\bact as (?:an?|the)\b[^.]{0,40}\b(admin|system|developer)", re.I
+        ),
+    ),
+    (
+        "system_prompt_probe",
+        re.compile(r"\b(system prompt|initial prompt|developer message)\b", re.I),
+    ),
+    (
+        "tool_invocation",
+        re.compile(r"\b(execute|run|eval)\s+(?:the\s+)?(?:command|code|script|tool)\b", re.I),
+    ),
+    (
+        "exfiltration",
+        re.compile(
+            r"\b(send|post|upload|exfiltrate)\b[^.]{0,40}\b(api[_ ]?key|token|credential|password)",
+            re.I,
+        ),
+    ),
+    (
+        "credential_request",
+        re.compile(
+            r"\b(provide|enter|paste|supply)\b[^.]{0,30}\b(api[_ ]?key|password|secret)\b", re.I
+        ),
+    ),
 )
 
 ZERO_WIDTH_RE = re.compile("[\u200b\u200c\u200d\u2060\ufeff\u00ad]")

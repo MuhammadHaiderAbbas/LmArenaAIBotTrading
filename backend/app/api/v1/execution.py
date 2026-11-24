@@ -55,7 +55,9 @@ def _account(db: Session, user, account_id: str | None) -> TradingAccount:
             raise HTTPException(status_code=404, detail="Account not found")
         return account
     account = db.scalar(
-        select(TradingAccount).where(TradingAccount.user_id == user.id).order_by(TradingAccount.created_at)
+        select(TradingAccount)
+        .where(TradingAccount.user_id == user.id)
+        .order_by(TradingAccount.created_at)
     )
     if account is None:
         raise HTTPException(status_code=404, detail="No trading account; create one first")
@@ -90,9 +92,7 @@ def _position_read(db: Session, position: Position) -> PositionRead:
 
 
 @router.get("/overview", response_model=ExecutionOverview)
-def overview(
-    db: DbSession, user: CurrentUser, account_id: str | None = None
-) -> ExecutionOverview:
+def overview(db: DbSession, user: CurrentUser, account_id: str | None = None) -> ExecutionOverview:
     account = _account(db, user, account_id)
     broker.mark_positions(db, account=account)
     db.commit()
@@ -126,7 +126,9 @@ def overview(
     )
 
     cash = float(ledger_service.ledger_cash(db, account))
-    positions_value = sum(position.quantity * (position.last_mark_price or 0) for position in open_positions)
+    positions_value = sum(
+        position.quantity * (position.last_mark_price or 0) for position in open_positions
+    )
     unrealised = sum(
         (position.last_mark_price or position.average_entry_price) * position.quantity
         - position.cost_basis
@@ -213,7 +215,9 @@ def list_orders(
         try:
             statement = statement.where(Order.status == OrderStatus(status_filter))
         except ValueError as exc:
-            raise HTTPException(status_code=422, detail=f"Unknown status '{status_filter}'") from exc
+            raise HTTPException(
+                status_code=422, detail=f"Unknown status '{status_filter}'"
+            ) from exc
     return [OrderRead.model_validate(order) for order in db.scalars(statement)]
 
 
@@ -267,9 +271,7 @@ def create_order(
                 actor_id=user.id,
             )
             db.commit()
-            raise HTTPException(
-                status_code=status.HTTP_409_CONFLICT, detail=str(exc)
-            ) from exc
+            raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=str(exc)) from exc
 
     db.commit()
     db.refresh(order)

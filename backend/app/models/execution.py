@@ -151,13 +151,19 @@ class Order(Base, TimestampMixin):
     )
 
     quantity: Mapped[float] = mapped_column(Float, nullable=False)
-    filled_quantity: Mapped[float] = mapped_column(Float, default=0.0, server_default="0", nullable=False)
+    filled_quantity: Mapped[float] = mapped_column(
+        Float, default=0.0, server_default="0", nullable=False
+    )
     limit_price: Mapped[float | None] = mapped_column(Float, nullable=True)
     stop_price: Mapped[float | None] = mapped_column(Float, nullable=True)
     average_fill_price: Mapped[float | None] = mapped_column(Float, nullable=True)
 
-    total_commission: Mapped[float] = mapped_column(Float, default=0.0, server_default="0", nullable=False)
-    total_slippage: Mapped[float] = mapped_column(Float, default=0.0, server_default="0", nullable=False)
+    total_commission: Mapped[float] = mapped_column(
+        Float, default=0.0, server_default="0", nullable=False
+    )
+    total_slippage: Mapped[float] = mapped_column(
+        Float, default=0.0, server_default="0", nullable=False
+    )
 
     #: Why the order was refused, in the words the reviewer will read.
     reject_reason: Mapped[str] = mapped_column(Text, default="", server_default="")
@@ -208,7 +214,9 @@ class OrderFill(Base, TimestampMixin):
     #: The mid at the moment of the fill, so slippage is measurable rather than claimed.
     reference_price: Mapped[float] = mapped_column(Float, nullable=False)
     slippage: Mapped[float] = mapped_column(Float, default=0.0, server_default="0", nullable=False)
-    commission: Mapped[float] = mapped_column(Float, default=0.0, server_default="0", nullable=False)
+    commission: Mapped[float] = mapped_column(
+        Float, default=0.0, server_default="0", nullable=False
+    )
     notional: Mapped[float] = mapped_column(Float, default=0.0, server_default="0", nullable=False)
     filled_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
     #: Which market that fill would have come from. Paper only, but labelled.
@@ -250,11 +258,19 @@ class Position(Base, TimestampMixin):
     )
 
     quantity: Mapped[float] = mapped_column(Float, default=0.0, server_default="0", nullable=False)
-    average_entry_price: Mapped[float] = mapped_column(Float, default=0.0, server_default="0", nullable=False)
-    cost_basis: Mapped[float] = mapped_column(Float, default=0.0, server_default="0", nullable=False)
+    average_entry_price: Mapped[float] = mapped_column(
+        Float, default=0.0, server_default="0", nullable=False
+    )
+    cost_basis: Mapped[float] = mapped_column(
+        Float, default=0.0, server_default="0", nullable=False
+    )
 
-    realised_pnl: Mapped[float] = mapped_column(Float, default=0.0, server_default="0", nullable=False)
-    total_commission: Mapped[float] = mapped_column(Float, default=0.0, server_default="0", nullable=False)
+    realised_pnl: Mapped[float] = mapped_column(
+        Float, default=0.0, server_default="0", nullable=False
+    )
+    total_commission: Mapped[float] = mapped_column(
+        Float, default=0.0, server_default="0", nullable=False
+    )
     last_mark_price: Mapped[float | None] = mapped_column(Float, nullable=True)
     last_marked_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
 

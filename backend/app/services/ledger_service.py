@@ -56,7 +56,9 @@ def _dec(value: float | Decimal | int | str) -> Decimal:
 # --------------------------------------------------------------------------
 # Account provisioning
 # --------------------------------------------------------------------------
-def ensure_ledger_accounts(db: Session, account: TradingAccount) -> dict[LedgerAccountKind, LedgerAccount]:
+def ensure_ledger_accounts(
+    db: Session, account: TradingAccount
+) -> dict[LedgerAccountKind, LedgerAccount]:
     existing = {
         la.kind: la
         for la in db.scalars(
@@ -100,9 +102,7 @@ def post_transaction(
     """Post a balanced transaction. Raises DomainError if it does not balance."""
     if idempotency_key:
         existing = db.scalar(
-            select(LedgerTransaction).where(
-                LedgerTransaction.idempotency_key == idempotency_key
-            )
+            select(LedgerTransaction).where(LedgerTransaction.idempotency_key == idempotency_key)
         )
         if existing is not None:
             return existing
@@ -111,9 +111,7 @@ def post_transaction(
     lines = [(kind, _dec(amount)) for kind, amount in lines]
     total = sum((amount for _, amount in lines), Decimal("0"))
     if total != 0:
-        raise DomainError(
-            f"Unbalanced ledger transaction: debits and credits differ by {total}."
-        )
+        raise DomainError(f"Unbalanced ledger transaction: debits and credits differ by {total}.")
     if len(lines) < 2:
         raise DomainError("A ledger transaction requires at least two lines.")
 
@@ -239,7 +237,12 @@ def open_account_with_funding(
 
 
 def virtual_deposit(
-    db: Session, *, account: TradingAccount, amount: float, description: str = "", actor_id: str | None = None
+    db: Session,
+    *,
+    account: TradingAccount,
+    amount: float,
+    description: str = "",
+    actor_id: str | None = None,
 ) -> LedgerTransaction:
     if account.environment.value != "paper":
         raise DomainError("Virtual funding is only available in the paper environment.")
@@ -258,7 +261,12 @@ def virtual_deposit(
 
 
 def virtual_withdrawal(
-    db: Session, *, account: TradingAccount, amount: float, description: str = "", actor_id: str | None = None
+    db: Session,
+    *,
+    account: TradingAccount,
+    amount: float,
+    description: str = "",
+    actor_id: str | None = None,
 ) -> LedgerTransaction:
     if account.environment.value != "paper":
         raise DomainError("Virtual withdrawals are only available in the paper environment.")

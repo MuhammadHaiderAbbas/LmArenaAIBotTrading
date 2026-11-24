@@ -9,7 +9,7 @@ from app.core.config import settings
 
 def test_root_identifies_phase(client: TestClient) -> None:
     body = client.get("/").json()
-    assert body["phase"] == "Phase 1 — Foundation"
+    assert body["phase"] == "Phase 11 — Security & reliability"
     assert body["name"] == settings.PROJECT_NAME
 
 

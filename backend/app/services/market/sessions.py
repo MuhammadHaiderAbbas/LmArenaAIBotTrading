@@ -66,7 +66,9 @@ def is_open(venue: Venue, at: datetime | None = None) -> bool:
     return venue_state(venue, at) in (SessionState.OPEN, SessionState.ALWAYS_ON)
 
 
-def last_expected_bar_close(venue: Venue, timeframe_seconds: int, at: datetime | None = None) -> datetime:
+def last_expected_bar_close(
+    venue: Venue, timeframe_seconds: int, at: datetime | None = None
+) -> datetime:
     """The most recent instant at which a *closed* bar should have existed.
 
     Used to distinguish "market is quiet" from "our data is stale". For a closed
@@ -96,8 +98,12 @@ def last_expected_bar_close(venue: Venue, timeframe_seconds: int, at: datetime |
     return moment.replace(second=0, microsecond=0)
 
 
-def staleness_seconds(venue: Venue, last_bar_close: datetime | None, timeframe_seconds: int,
-                      at: datetime | None = None) -> float | None:
+def staleness_seconds(
+    venue: Venue,
+    last_bar_close: datetime | None,
+    timeframe_seconds: int,
+    at: datetime | None = None,
+) -> float | None:
     """Seconds by which our newest bar lags what the venue should have produced."""
     if last_bar_close is None:
         return None

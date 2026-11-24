@@ -56,7 +56,6 @@ def get_provider(name: str) -> MarketDataProvider:
     return provider
 
 
-
 @dataclass(slots=True)
 class SyncResult:
     instrument: str
@@ -76,7 +75,9 @@ class SyncResult:
 # ---------------------------------------------------------------------------
 # Provider routing
 # ---------------------------------------------------------------------------
-def provider_candidates(db: Session, instrument: Instrument, timeframe: Timeframe) -> list[tuple[str, str]]:
+def provider_candidates(
+    db: Session, instrument: Instrument, timeframe: Timeframe
+) -> list[tuple[str, str]]:
     """Ordered (provider, provider_symbol) pairs that can serve this timeframe."""
     mappings = sorted(instrument.providers, key=lambda mapping: mapping.priority)
     candidates: list[tuple[str, str]] = []
@@ -190,7 +191,11 @@ def sync_candles(
         )
         for finding in findings:
             _record_event(
-                db, instrument=instrument, provider=provider_name, finding=finding, timeframe=timeframe
+                db,
+                instrument=instrument,
+                provider=provider_name,
+                finding=finding,
+                timeframe=timeframe,
             )
 
         written, skipped = _upsert_bars(
@@ -281,19 +286,19 @@ def _upsert_bars(
         row = existing.get(_key(bar.open_time))
         if row is None:
             row = MarketCandle(
-                    instrument_id=instrument.id,
-                    timeframe=timeframe,
-                    open_time=bar.open_time,
-                    close_time=bar.open_time + step,
-                    open=bar.open,
-                    high=bar.high,
-                    low=bar.low,
-                    close=bar.close,
-                    vwap=bar.vwap,
-                    volume=bar.volume,
-                    trades=bar.trades,
-                    provider=provider,
-                    is_final=bar.is_final,
+                instrument_id=instrument.id,
+                timeframe=timeframe,
+                open_time=bar.open_time,
+                close_time=bar.open_time + step,
+                open=bar.open,
+                high=bar.high,
+                low=bar.low,
+                close=bar.close,
+                vwap=bar.vwap,
+                volume=bar.volume,
+                trades=bar.trades,
+                provider=provider,
+                is_final=bar.is_final,
                 ingested_at=now,
             )
             db.add(row)
@@ -356,9 +361,7 @@ def sync_quote(db: Session, instrument: Instrument) -> SyncResult:
 
         scale = float(instrument.price_scale)
         received = datetime.now(UTC)
-        row = db.scalar(
-            select(MarketQuote).where(MarketQuote.instrument_id == instrument.id)
-        )
+        row = db.scalar(select(MarketQuote).where(MarketQuote.instrument_id == instrument.id))
         if row is None:
             row = MarketQuote(instrument_id=instrument.id)
             db.add(row)
@@ -374,9 +377,7 @@ def sync_quote(db: Session, instrument: Instrument) -> SyncResult:
         row.observed_at = quote.observed_at
         row.received_at = received
 
-        for finding in quality.check_quote(
-            row.last, quote.observed_at, venue=instrument.venue
-        ):
+        for finding in quality.check_quote(row.last, quote.observed_at, venue=instrument.venue):
             _record_event(
                 db, instrument=instrument, provider=provider_name, finding=finding, timeframe=None
             )

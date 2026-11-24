@@ -194,9 +194,7 @@ def _check_staleness(
     threshold = timeframe.seconds + 30
     if lag > threshold:
         severity = (
-            QualitySeverity.CRITICAL
-            if lag > max(threshold * 3, 900)
-            else QualitySeverity.WARNING
+            QualitySeverity.CRITICAL if lag > max(threshold * 3, 900) else QualitySeverity.WARNING
         )
         return [
             Finding(
@@ -204,8 +202,7 @@ def _check_staleness(
                 severity,
                 f"Newest bar is {lag / 60:.0f} min older than expected",
                 detail=(
-                    f"{venue.code} {timeframe.value}: last bar closed "
-                    f"{last_close.isoformat()}"
+                    f"{venue.code} {timeframe.value}: last bar closed {last_close.isoformat()}"
                 ),
                 window_end=last_close,
             )
@@ -256,9 +253,7 @@ def check_quote(
             )
         ]
 
-    severity = (
-        QualitySeverity.CRITICAL if age >= max_age_seconds * 4 else QualitySeverity.WARNING
-    )
+    severity = QualitySeverity.CRITICAL if age >= max_age_seconds * 4 else QualitySeverity.WARNING
     return [
         Finding(
             QualityEventType.STALE,

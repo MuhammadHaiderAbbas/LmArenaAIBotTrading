@@ -39,7 +39,9 @@ from app.services.ml import training as training_lib
 router = APIRouter(prefix="/models", tags=["models"])
 
 
-def _version_read(version: ModelVersion, evaluations: list[ModelEvaluation] | None = None) -> ModelVersionRead:
+def _version_read(
+    version: ModelVersion, evaluations: list[ModelEvaluation] | None = None
+) -> ModelVersionRead:
     payload = ModelVersionRead.model_validate(version)
     if evaluations is not None:
         payload.evaluations = [EvaluationRead.model_validate(item) for item in evaluations]
@@ -130,7 +132,9 @@ def get_version(version_id: str, db: DbSession, user: CurrentUser) -> ModelVersi
     if version is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Version not found")
     detail = ModelVersionDetail.model_validate(version)
-    detail.evaluations = [EvaluationRead.model_validate(item) for item in _evaluations(db, version_id)]
+    detail.evaluations = [
+        EvaluationRead.model_validate(item) for item in _evaluations(db, version_id)
+    ]
     detail.feature_snapshots = [
         {
             "feature": snapshot.feature,
@@ -167,7 +171,9 @@ def train(
             created_by=user.id,
         )
     except ValueError as exc:
-        raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail=str(exc)) from exc
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail=str(exc)
+        ) from exc
     db.commit()
     return get_version(version.id, db, user)
 
@@ -182,7 +188,9 @@ def promote(
             db, version_id=version_id, actor_id=user.id, note=payload.note, force=payload.force
         )
     except ValueError as exc:
-        raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail=str(exc)) from exc
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail=str(exc)
+        ) from exc
     db.commit()
     return _version_read(version, _evaluations(db, version.id))
 
@@ -192,7 +200,9 @@ def rollback(version_id: str, db: DbSession, user: StaffUser) -> ModelVersionRea
     try:
         version = ml_registry.rollback(db, version_id=version_id, actor_id=user.id)
     except ValueError as exc:
-        raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail=str(exc)) from exc
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail=str(exc)
+        ) from exc
     db.commit()
     return _version_read(version, _evaluations(db, version.id))
 
@@ -202,7 +212,9 @@ def reject(version_id: str, db: DbSession, user: StaffUser, note: str = "") -> M
     try:
         version = ml_registry.reject(db, version_id=version_id, note=note)
     except ValueError as exc:
-        raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail=str(exc)) from exc
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail=str(exc)
+        ) from exc
     db.commit()
     return _version_read(version, _evaluations(db, version.id))
 
@@ -216,14 +228,19 @@ def check_drift(
             db, version_id=version_id, symbol=payload.symbol, timeframe=payload.timeframe
         )
     except ValueError as exc:
-        raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail=str(exc)) from exc
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail=str(exc)
+        ) from exc
     db.commit()
     return [DriftRead.model_validate(event) for event in events]
 
 
 @router.get("/drift", response_model=list[DriftRead])
 def list_drift(
-    db: DbSession, user: CurrentUser, open_only: bool = True, limit: int = Query(default=50, ge=1, le=200)
+    db: DbSession,
+    user: CurrentUser,
+    open_only: bool = True,
+    limit: int = Query(default=50, ge=1, le=200),
 ) -> list[DriftRead]:
     statement = select(DriftEvent).order_by(DriftEvent.created_at.desc()).limit(limit)
     if open_only:

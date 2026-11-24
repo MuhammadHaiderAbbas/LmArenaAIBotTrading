@@ -54,9 +54,7 @@ def overview(db: DbSession, user: CurrentUser) -> StrategyOverview:
         db.commit()
     strategies = list(db.scalars(select(Strategy)))
     backtests = list(db.scalars(select(Backtest)))
-    passing = list(
-        db.scalars(select(BacktestMetrics).where(BacktestMetrics.passes_gate.is_(True)))
-    )
+    passing = list(db.scalars(select(BacktestMetrics).where(BacktestMetrics.passes_gate.is_(True))))
     edges = [item.edge_over_baseline for item in passing if item.edge_over_baseline is not None]
     return StrategyOverview(
         strategies_total=len(strategies),
@@ -72,9 +70,7 @@ def overview(db: DbSession, user: CurrentUser) -> StrategyOverview:
 
 def _detail(db: Session, backtest: Backtest) -> BacktestDetail:
     strategy = db.get(Strategy, backtest.strategy_id)
-    metrics = db.scalar(
-        select(BacktestMetrics).where(BacktestMetrics.backtest_id == backtest.id)
-    )
+    metrics = db.scalar(select(BacktestMetrics).where(BacktestMetrics.backtest_id == backtest.id))
     detail = BacktestDetail.model_validate(backtest)
     detail.strategy_code = strategy.code if strategy else ""
     detail.metrics = MetricsRead.model_validate(metrics) if metrics else None
@@ -142,7 +138,9 @@ def create_backtest(
             requested_by=user.id,
         )
     except ValueError as exc:
-        raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail=str(exc)) from exc
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail=str(exc)
+        ) from exc
     db.commit()
     db.refresh(backtest)
     return _detail(db, backtest)
@@ -158,7 +156,9 @@ def validate(
             db, strategy_id=strategy_id, actor_id=user.id, note=payload.note
         )
     except ValueError as exc:
-        raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail=str(exc)) from exc
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail=str(exc)
+        ) from exc
     db.commit()
     return StrategyRead.model_validate(strategy)
 

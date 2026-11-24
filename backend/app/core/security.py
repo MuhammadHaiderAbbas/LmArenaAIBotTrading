@@ -20,7 +20,7 @@ import jwt
 from app.core.config import settings
 
 PBKDF2_ITERATIONS = 260_000
-TokenType = Literal["access", "refresh"]
+TokenType = Literal["access", "refresh", "mfa_challenge"]
 
 
 # --------------------------------------------------------------------------
@@ -39,9 +39,7 @@ def verify_password(password: str, stored: str) -> bool:
             return False
         salt = base64.b64decode(salt_b64)
         expected = base64.b64decode(digest_b64)
-        candidate = hashlib.pbkdf2_hmac(
-            "sha256", password.encode(), salt, int(iterations)
-        )
+        candidate = hashlib.pbkdf2_hmac("sha256", password.encode(), salt, int(iterations))
         return hmac.compare_digest(candidate, expected)
     except (ValueError, TypeError):
         return False
@@ -50,9 +48,7 @@ def verify_password(password: str, stored: str) -> bool:
 def password_policy_errors(password: str) -> list[str]:
     errors: list[str] = []
     if len(password) < settings.PASSWORD_MIN_LENGTH:
-        errors.append(
-            f"Password must be at least {settings.PASSWORD_MIN_LENGTH} characters."
-        )
+        errors.append(f"Password must be at least {settings.PASSWORD_MIN_LENGTH} characters.")
     if not any(c.islower() for c in password):
         errors.append("Password must contain a lowercase letter.")
     if not any(c.isupper() for c in password):
@@ -65,7 +61,9 @@ def password_policy_errors(password: str) -> list[str]:
 # --------------------------------------------------------------------------
 # Tokens
 # --------------------------------------------------------------------------
-def _create_token(subject: str, token_type: TokenType, extra: dict[str, Any], expires: timedelta) -> str:
+def _create_token(
+    subject: str, token_type: TokenType, extra: dict[str, Any], expires: timedelta
+) -> str:
     now = datetime.now(UTC)
     payload: dict[str, Any] = {
         "sub": subject,
@@ -97,6 +95,16 @@ def create_refresh_token(subject: str, role: str) -> str:
         "refresh",
         {"role": role},
         timedelta(days=settings.REFRESH_TOKEN_EXPIRE_DAYS),
+    )
+
+
+def create_mfa_challenge(subject: str, role: str) -> str:
+    """A short-lived token that proves *the password* was right and nothing more."""
+    return _create_token(
+        subject,
+        "mfa_challenge",
+        {"role": role},
+        timedelta(minutes=5),  # type: ignore[arg-type]
     )
 
 

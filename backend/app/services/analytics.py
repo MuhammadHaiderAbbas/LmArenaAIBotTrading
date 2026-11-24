@@ -182,9 +182,16 @@ def round_trips(db: Session, account: TradingAccount) -> list[ClosedTrade]:
             lot = book[0]
             matched = min(lot["quantity"], remaining)
             entry_notional = lot["price"] * matched
-            entry_commission = lot["commission"] * (matched / lot["quantity"]) if lot["quantity"] else 0.0
+            entry_commission = (
+                lot["commission"] * (matched / lot["quantity"]) if lot["quantity"] else 0.0
+            )
             exit_notional = fill.price * matched
-            pnl = exit_notional - entry_notional - entry_commission - exit_commission_per_unit * matched
+            pnl = (
+                exit_notional
+                - entry_notional
+                - entry_commission
+                - exit_commission_per_unit * matched
+            )
 
             trades.append(
                 ClosedTrade(
@@ -347,7 +354,9 @@ def equity_curve(db: Session, account: TradingAccount, *, max_points: int = 400)
     curve: list[dict] = []
     day = start
     while day <= end:
-        moment = datetime.combine(day, datetime.min.time(), tzinfo=UTC) + timedelta(hours=23, minutes=59)
+        moment = datetime.combine(day, datetime.min.time(), tzinfo=UTC) + timedelta(
+            hours=23, minutes=59
+        )
         cash = cash_at(rows, moment)
         held_value = 0.0
         for symbol in symbols:
@@ -407,7 +416,9 @@ def benchmark_curve(
     curve: list[dict] = []
     day = start
     while day <= end:
-        moment = datetime.combine(day, datetime.min.time(), tzinfo=UTC) + timedelta(hours=23, minutes=59)
+        moment = datetime.combine(day, datetime.min.time(), tzinfo=UTC) + timedelta(
+            hours=23, minutes=59
+        )
         growth = 0.0
         counted = 0
         for symbol, points in usable.items():
@@ -501,7 +512,9 @@ def win_rate(trades: list[ClosedTrade]) -> float | None:
 # ------------------------------------------------------------------- report
 
 
-def build_report(db: Session, account: TradingAccount, *, now: datetime | None = None) -> AnalyticsReport:
+def build_report(
+    db: Session, account: TradingAccount, *, now: datetime | None = None
+) -> AnalyticsReport:
     moment = now or datetime.now(UTC)
     cash = float(ledger_service.ledger_cash(db, account))
     book_value = positions_value(db, account)
@@ -519,9 +532,13 @@ def build_report(db: Session, account: TradingAccount, *, now: datetime | None =
 
     notes: list[str] = []
     if not fills:
-        notes.append("No fills yet: there is nothing to measure, and an empty dashboard is the honest report.")
+        notes.append(
+            "No fills yet: there is nothing to measure, and an empty dashboard is the honest report."
+        )
     if fills and not trades:
-        notes.append("Positions are open but none is closed, so trade statistics stay blank until a round trip completes.")
+        notes.append(
+            "Positions are open but none is closed, so trade statistics stay blank until a round trip completes."
+        )
     if trades and len(trades) < MIN_TRADES_FOR_STATS:
         notes.append(
             f"Only {len(trades)} closed round trip(s); at least {MIN_TRADES_FOR_STATS} are required "
@@ -567,7 +584,9 @@ def build_report(db: Session, account: TradingAccount, *, now: datetime | None =
             sharpe(returns),
             "ratio",
             "Annualised mean daily return ÷ volatility of daily returns",
-            "" if len(returns) >= MIN_OBSERVATIONS_FOR_RATIOS else f"needs ≥{MIN_OBSERVATIONS_FOR_RATIOS} daily observations",
+            ""
+            if len(returns) >= MIN_OBSERVATIONS_FOR_RATIOS
+            else f"needs ≥{MIN_OBSERVATIONS_FOR_RATIOS} daily observations",
         ),
         Metric(
             "sortino",
@@ -575,7 +594,9 @@ def build_report(db: Session, account: TradingAccount, *, now: datetime | None =
             sortino(returns),
             "ratio",
             "Annualised mean daily return ÷ downside deviation",
-            "" if len(returns) >= MIN_OBSERVATIONS_FOR_RATIOS else f"needs ≥{MIN_OBSERVATIONS_FOR_RATIOS} daily observations",
+            ""
+            if len(returns) >= MIN_OBSERVATIONS_FOR_RATIOS
+            else f"needs ≥{MIN_OBSERVATIONS_FOR_RATIOS} daily observations",
         ),
         Metric(
             "max_drawdown",
@@ -590,7 +611,9 @@ def build_report(db: Session, account: TradingAccount, *, now: datetime | None =
             win_rate(trades) if len(trades) >= MIN_TRADES_FOR_STATS else None,
             "pct",
             "Closed round trips with positive P&L ÷ all closed round trips",
-            "" if len(trades) >= MIN_TRADES_FOR_STATS else f"needs ≥{MIN_TRADES_FOR_STATS} closed trips",
+            ""
+            if len(trades) >= MIN_TRADES_FOR_STATS
+            else f"needs ≥{MIN_TRADES_FOR_STATS} closed trips",
         ),
         Metric(
             "profit_factor",
@@ -598,8 +621,12 @@ def build_report(db: Session, account: TradingAccount, *, now: datetime | None =
             profit_factor(trades) if len(trades) >= MIN_TRADES_FOR_STATS else None,
             "ratio",
             "Gross profit ÷ gross loss",
-            "undefined while nothing has been lost" if trades and profit_factor(trades) is None else (
-                "" if len(trades) >= MIN_TRADES_FOR_STATS else f"needs ≥{MIN_TRADES_FOR_STATS} closed trips"
+            "undefined while nothing has been lost"
+            if trades and profit_factor(trades) is None
+            else (
+                ""
+                if len(trades) >= MIN_TRADES_FOR_STATS
+                else f"needs ≥{MIN_TRADES_FOR_STATS} closed trips"
             ),
         ),
         Metric(

@@ -39,6 +39,9 @@ class User(Base, TimestampMixin):
     is_active: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
     is_verified: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
     mfa_enabled: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
+    # TOTP secret, encrypted at rest with SECRET_KEY (app.core.secrets). Never returned.
+    mfa_secret: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    mfa_enrolled_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     last_login_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
 
     accounts: Mapped[list[TradingAccount]] = relationship(

@@ -14,7 +14,17 @@ import re
 from app.models.research import EntityKind
 
 CURRENCY_CODES = {
-    "USD", "EUR", "GBP", "JPY", "CHF", "AUD", "CAD", "NZD", "CNY", "SEK", "NOK",
+    "USD",
+    "EUR",
+    "GBP",
+    "JPY",
+    "CHF",
+    "AUD",
+    "CAD",
+    "NZD",
+    "CNY",
+    "SEK",
+    "NOK",
 }
 
 INSTITUTIONS = {
@@ -72,9 +82,25 @@ def extract(text: str, title: str = "") -> list[tuple[EntityKind, str, float]]:
         found[(EntityKind.PERIOD, match.group(1))] = 0.6
 
     # Registered symbols, matched exactly and only in upper case.
-    for symbol in ("BTC/USD", "ETH/USD", "SOL/USD", "XRP/USD", "ADA/USD",
-                   "GBP/USD", "EUR/USD", "USD/JPY", "GBP/EUR",
-                   "AAPL", "MSFT", "NVDA", "TSLA", "SHEL", "HSBA", "SPY", "QQQ"):
+    for symbol in (
+        "BTC/USD",
+        "ETH/USD",
+        "SOL/USD",
+        "XRP/USD",
+        "ADA/USD",
+        "GBP/USD",
+        "EUR/USD",
+        "USD/JPY",
+        "GBP/EUR",
+        "AAPL",
+        "MSFT",
+        "NVDA",
+        "TSLA",
+        "SHEL",
+        "HSBA",
+        "SPY",
+        "QQQ",
+    ):
         if symbol in haystack:
             found[(EntityKind.INSTRUMENT, symbol)] = 0.95
 

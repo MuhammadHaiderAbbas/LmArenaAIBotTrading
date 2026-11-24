@@ -103,7 +103,12 @@ def build_matrix_for(
 
 
 def _store_evaluation(
-    db: Session, version: ModelVersion, kind: EvaluationKind, metrics: training_lib.Metrics, *, out_of_sample: bool
+    db: Session,
+    version: ModelVersion,
+    kind: EvaluationKind,
+    metrics: training_lib.Metrics,
+    *,
+    out_of_sample: bool,
 ) -> ModelEvaluation:
     payload = metrics.as_dict()
     evaluation = ModelEvaluation(
@@ -194,8 +199,12 @@ def train_version(
     db.flush()
 
     _store_evaluation(db, version, EvaluationKind.TRAIN, result.train, out_of_sample=False)
-    _store_evaluation(db, version, EvaluationKind.VALIDATION, result.validation, out_of_sample=False)
-    _store_evaluation(db, version, EvaluationKind.OUT_OF_SAMPLE, result.out_of_sample, out_of_sample=True)
+    _store_evaluation(
+        db, version, EvaluationKind.VALIDATION, result.validation, out_of_sample=False
+    )
+    _store_evaluation(
+        db, version, EvaluationKind.OUT_OF_SAMPLE, result.out_of_sample, out_of_sample=True
+    )
 
     for summary in feature_lib.describe(matrix.values[matrix.usable], matrix.names):
         db.add(
@@ -325,7 +334,9 @@ def reject(db: Session, *, version_id: str, note: str) -> ModelVersion:
     return version
 
 
-def predict_probability(db: Session, *, version_id: str, matrix: feature_lib.FeatureMatrix) -> float | None:
+def predict_probability(
+    db: Session, *, version_id: str, matrix: feature_lib.FeatureMatrix
+) -> float | None:
     """Score the most recent usable row with a stored version.
 
     Returns None rather than a guess when the row's features are incomplete.

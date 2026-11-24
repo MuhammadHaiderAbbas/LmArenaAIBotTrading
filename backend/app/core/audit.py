@@ -1,4 +1,10 @@
-"""Audit logging. Append-only; sensitive actions must call `record_audit`."""
+"""Audit logging. Append-only and hash-chained.
+
+Every entry is sealed on write (`app/services/integrity.py`), so editing or deleting a
+row is detectable afterwards. `record_audit` flushes but does not commit: the caller
+owns the transaction, so an audit entry is never recorded for an action that then rolls
+back.
+"""
 
 from __future__ import annotations
 
@@ -44,6 +50,13 @@ def record_audit(
         created_at=datetime.now(UTC).isoformat(),
     )
     db.add(entry)
+    db.flush()
+
+    # Seal immediately. A caller that never commits will roll the seal back with the
+    # entry, which is correct: an uncommitted action should leave no trace.
+    from app.services import integrity
+
+    integrity.seal_entry(db, entry)
     return entry
 
 

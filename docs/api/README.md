@@ -210,6 +210,45 @@ the sample cannot support the metric and `note` says what is missing — a clien
 render a dash, not a zero. Every report carries `forward_looking: false`, and the
 `notes` array states the report's own caveats.
 
+## Operations (Phase 11)
+
+| Method | Path | Auth | Purpose |
+| --- | --- | --- | --- |
+| GET | `/operations/health` | **public** | Liveness only: `status`, `phase`, `version`, `checked_at`. No account state, no internals |
+| GET | `/operations/monitoring` | bearer | Eight-check health report for the caller's account |
+| GET | `/operations/monitoring/system` | staff | Same report, system-wide, `scope: "system"` |
+| GET | `/operations/audit` | staff | Sealed audit entries, newest first (`limit`, `offset`, `action`); each row carries `sequence`, `sealed`, `entry_hash` |
+| GET | `/operations/audit/verify` | staff | Walk the hash chain. Reports `verified`, `first_broken_at`, `reason`, `digest`, `limitations`. **Never repairs** |
+| POST | `/operations/audit/seal` | staff | Adopt unsealed rows into the chain. Idempotent; audited |
+| GET | `/operations/audit/digest` | staff | Publishable head digest — the mitigation for tail re-sealing |
+| GET | `/operations/backups` | staff | Enumerate on-disk backups |
+| POST | `/operations/backups` | staff | Take a backup now; audited |
+| POST | `/operations/backups/verify` | staff | `{path}` → checksum, integrity check, row counts, unsealed audit entries |
+| POST | `/operations/backups/drill` | staff | Backup → restore into scratch → verify; `passed` is the answer |
+
+`/operations/health` is deliberately the only unauthenticated route added in this phase:
+a liveness probe must answer before anyone has a token, and it must not leak balances or
+symbols. Anything that reveals account state or system internals requires a bearer token,
+and the audit/backup endpoints are staff-only (403 for a standard user, tested).
+
+A monitoring report is `{status, findings, counts, checks_run}` where each finding is
+`{check, label, status, message, detail}` and `status` is the worst of the findings.
+Monitoring is read-only: it reports, it does not act.
+
+## MFA (Phase 11)
+
+| Method | Path | Auth | Purpose |
+| --- | --- | --- | --- |
+| GET | `/auth/mfa` | bearer | What is *actually* enforced: enabled, enrolled-at, required-for-role, recovery codes remaining |
+| POST | `/auth/mfa/enrol` | bearer | Start enrolment: returns the secret and an `otpauth://` URL |
+| POST | `/auth/mfa/confirm` | bearer | `{code}` → enables the factor, returns eight one-time recovery codes |
+| POST | `/auth/mfa/verify` | none | `{challenge_token, code}` → token pair |
+| POST | `/auth/mfa/disable` | bearer | `{password, code}` → both required |
+
+When MFA is on, `POST /auth/login` with a correct password returns
+`401 {"detail": ..., "mfa_required": true, "challenge_token": "..."}` and **no tokens**.
+The challenge token is only accepted by `/auth/mfa/verify`.
+
 ## Reserved namespaces (implemented in later phases)
 
 `/signals`, `/trading`, `/orders`, `/portfolio`, `/wallet`,

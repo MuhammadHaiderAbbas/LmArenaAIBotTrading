@@ -160,9 +160,7 @@ def run_backtest(
         return backtest
 
     final_equity = result.equity[-1].equity if result.equity else starting_equity
-    baseline_return = _baseline_return(
-        db, symbol, timeframe, limit, starting_equity, spec, warmup
-    )
+    baseline_return = _baseline_return(db, symbol, timeframe, limit, starting_equity, spec, warmup)
 
     metrics = simulator.compute_metrics(
         result,

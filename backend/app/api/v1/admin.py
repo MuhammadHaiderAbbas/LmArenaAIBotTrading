@@ -40,9 +40,7 @@ def list_users(
     limit: int = Query(default=50, ge=1, le=200),
     offset: int = Query(default=0, ge=0),
 ) -> list[UserRead]:
-    users = db.scalars(
-        select(User).order_by(User.created_at.desc()).limit(limit).offset(offset)
-    )
+    users = db.scalars(select(User).order_by(User.created_at.desc()).limit(limit).offset(offset))
     return [UserRead.model_validate(u) for u in users]
 
 

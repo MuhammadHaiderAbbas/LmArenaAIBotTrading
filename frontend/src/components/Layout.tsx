@@ -44,6 +44,7 @@ export const NAV_ITEMS: NavItem[] = [
   { to: "/wallet", label: "Wallet", icon: <IconWallet /> },
   { to: "/history", label: "Trade History", icon: <IconHistory />, phase: 8 },
   { to: "/analytics", label: "Analytics", icon: <IconChart />, phase: 10 },
+  { to: "/operations", label: "Operations", icon: <IconShield />, phase: 11 },
   { to: "/settings", label: "Settings & Admin", icon: <IconSettings />, requiresAdmin: false },
 ];
 
