@@ -28,6 +28,13 @@ import type {
   Order,
   Position,
 } from "../lib/executionTypes";
+import * as demoRisk from "../lib/demo/riskEngine";
+import type {
+  BreakerState,
+  RiskCheckRecord,
+  RiskOverview,
+  RiskStatus,
+} from "../lib/riskTypes";
 import * as demoModelEngine from "../lib/demo/modelEngine";
 import type { DriftEvent as DemoDriftEvent, ModelOverview as DemoModelOverview, ModelVersion as DemoModelVersion } from "../lib/demo/modelEngine";
 import { demoResearchApi } from "../lib/demo/researchEngine";
@@ -375,6 +382,39 @@ export const api = {
       return order;
     }
     return http<Order>(`/execution/orders/${orderId}/cancel`, { method: "POST" });
+  },
+
+  async riskStatus(): Promise<RiskStatus> {
+    if (IS_DEMO) return demoRisk.status();
+    return http<RiskStatus>("/risk/status");
+  },
+
+  async riskOverview(): Promise<RiskOverview> {
+    if (IS_DEMO) return demoRisk.overview();
+    return http<RiskOverview>("/risk/overview");
+  },
+
+  async riskChecks(limit = 25): Promise<RiskCheckRecord[]> {
+    if (IS_DEMO) return demoRisk.checks().slice(0, limit);
+    return http<RiskCheckRecord[]>(`/risk/checks?limit=${limit}`);
+  },
+
+  async riskEmergencyStop(reason: string): Promise<BreakerState> {
+    if (IS_DEMO) return demoRisk.tripBreaker(reason).breaker_state;
+    const row = await http<{ state: BreakerState }>("/risk/emergency-stop", {
+      method: "POST",
+      body: JSON.stringify({ reason }),
+    });
+    return row.state;
+  },
+
+  async riskResume(reason = "Resumed by an authorised user."): Promise<BreakerState> {
+    if (IS_DEMO) return demoRisk.clearBreaker(reason).breaker_state;
+    const row = await http<{ state: BreakerState }>(
+      `/risk/resume?reason=${encodeURIComponent(reason)}`,
+      { method: "POST" },
+    );
+    return row.state;
   },
 
   async modelOverview(symbol = "GBP/USD"): Promise<DemoModelOverview> {

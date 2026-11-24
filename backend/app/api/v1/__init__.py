@@ -11,6 +11,7 @@ from app.api.v1 import (
     markets,
     models,
     research,
+    risk,
     strategies,
     system,
     users,
@@ -27,4 +28,5 @@ api_router.include_router(ai.router)
 api_router.include_router(models.router)
 api_router.include_router(strategies.router)
 api_router.include_router(execution.router)
+api_router.include_router(risk.router)
 api_router.include_router(admin.router)

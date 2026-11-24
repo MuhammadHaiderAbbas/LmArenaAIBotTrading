@@ -11,6 +11,7 @@
  */
 
 import { candlesForSymbol } from "./marketEngine";
+import * as riskEngine from "./riskEngine";
 import type {
   ExecutionEvent,
   ExecutionEventType,
@@ -227,8 +228,33 @@ export function placeOrder(input: ProposalInput): { order: Order; state: Executi
     return { order, state };
   }
 
+  // --- Independent risk gate ------------------------------------------------
+  // Mirrors the backend: execution validation answers "can this account pay for
+  // it?", the risk controller answers "should this account be taking this risk?".
+  const risk = riskEngine.evaluateAndRecord({
+    symbol: input.symbol,
+    side: input.side,
+    quantity: input.quantity,
+  });
+
+  if (risk.decision === "reject") {
+    order.status = "rejected";
+    order.reject_reason = risk.reason;
+    order.completed_at = nowIso();
+    order.events.push(eventFor("rejected", risk.reason));
+    state.orders.unshift(order);
+    state.events.unshift(...order.events);
+    save(state);
+    return { order, state };
+  }
+
+  if (risk.approvedQuantity < input.quantity - 1e-12) {
+    order.quantity = risk.approvedQuantity;
+    order.events.push(eventFor("validated", risk.reason));
+  }
+
   order.status = "validated";
-  order.events.push(eventFor("validated", validation.reason));
+  order.events.push(eventFor("validated", risk.reason));
   order.status = "submitted";
   order.submitted_at = nowIso();
   order.events.push(eventFor("acknowledged", "Paper broker acknowledged the order."));

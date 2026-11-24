@@ -177,9 +177,29 @@ returns `404`, never its contents.
 
 Note the path: execution lives under `/execution`, not `/trading` or `/orders`.
 
+## Risk engine (Phase 9)
+
+| Method | Path | Auth | Purpose |
+| --- | --- | --- | --- |
+| GET | `/risk/status` | bearer | Breaker state, limits, applied rules, live exposure and drawdown |
+| GET | `/risk/policy` | bearer | Active risk policy |
+| PUT | `/risk/policy` | **staff** | Replace the policy — creates a new version, records the reason |
+| GET | `/risk/checks` | bearer | Decision history with every rule's observed value and limit |
+| GET | `/risk/events` | bearer | Risk event log |
+| POST | `/risk/evaluate` | bearer | Dry run: no order created, nothing persisted |
+| POST | `/risk/emergency-stop` | **staff** | Engage the shutdown |
+| POST | `/risk/resume` | **staff** | Clear the halt |
+| GET | `/risk/breakers` | bearer | Breaker history |
+| GET | `/risk/overview` | bearer | Counts, breach frequency, `rules_not_implemented` |
+
+A rejected order returns `201` from `/execution/orders` with `status: rejected` and the
+risk reason in `reject_reason`; the corresponding `/risk/checks` row carries the full
+trace. `RiskStatus.closes_positions` is always `false`: the shutdown halts new risk and
+never liquidates, and the contract says so rather than leaving it to be inferred.
+
 ## Reserved namespaces (implemented in later phases)
 
-`/signals`, `/trading`, `/orders`, `/positions`, `/portfolio`, `/risk`, `/wallet`,
+`/signals`, `/trading`, `/orders`, `/positions`, `/portfolio`, `/wallet`,
 `/transactions`, `/analytics`, `/notifications`, `/scheduler`. These routes are
 intentionally absent so no client can assume they exist. Note that `/positions` and
 `/orders` remain reserved at the **top level** even though Phase 8 serves positions and

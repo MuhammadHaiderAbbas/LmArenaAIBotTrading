@@ -94,6 +94,15 @@ from app.models.research import (
 from app.models.research import (
     IngestRun as ResearchIngestRun,
 )
+from app.models.risk import (
+    BreakerState,
+    CircuitBreaker,
+    RiskCheck,
+    RiskDecision,
+    RiskEvent,
+    RiskPolicy,
+    RiskRule,
+)
 from app.models.strategy import (
     Backtest,
     BacktestEquityPoint,
@@ -196,4 +205,11 @@ __all__ = [
     "UserRole",
     "UserSession",
     "UserSettings",
+    "BreakerState",
+    "CircuitBreaker",
+    "RiskCheck",
+    "RiskDecision",
+    "RiskEvent",
+    "RiskPolicy",
+    "RiskRule",
 ]

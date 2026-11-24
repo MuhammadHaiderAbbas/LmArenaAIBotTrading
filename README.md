@@ -8,13 +8,13 @@ portfolio simulation, deterministic risk controls and automated order execution 
 goal of *identifying statistically defensible opportunities, explaining its reasoning and declining
 to trade when evidence is insufficient*.
 
-> **This repository currently contains Phases 1–8 (Foundation, Accounts, Market Data, Research AI, AI Desk, Model Engineering, Backtesting, Paper Execution).**
+> **This repository currently contains Phases 1–9 (Foundation, Accounts, Market Data, Research AI, AI Desk, Model Engineering, Backtesting, Paper Execution, Risk Engine).**
 > There is no live trading, no broker connection, no payment processing, no customer money and no
 > performance claim anywhere in this codebase. Scope boundaries: [`phase-1.md`](docs/architecture/phase-1.md),
 > [`phase-2.md`](docs/architecture/phase-2.md), [`phase-3.md`](docs/architecture/phase-3.md),
 > [`phase-4.md`](docs/architecture/phase-4.md), [`phase-5.md`](docs/architecture/phase-5.md),
 > [`phase-6.md`](docs/architecture/phase-6.md), [`phase-7.md`](docs/architecture/phase-7.md),
-> [`phase-8.md`](docs/architecture/phase-8.md).
+> [`phase-8.md`](docs/architecture/phase-8.md), [`phase-9.md`](docs/architecture/phase-9.md).
 
 ---
 
@@ -63,7 +63,7 @@ The demo is a product walkthrough, **not** a security boundary and holds no real
 | AI agents (P5) | 6 deterministic specialists (technical, regime, news, portfolio, quality, quantitative); 2 registered as explicitly unbuilt |
 | Orchestrator (P5) | Structured findings with evidence-or-absence, conflict detection, refusal when evidence is thin |
 | AI Desk UI (P5) | Findings with facts/interpretation/uncertainty split, confidence labelled as a rule score, blocked reason shown |
-| DX | Docker Compose (Postgres + Redis + API + web), seed script, 318 backend + 156 frontend tests; CI workflow in `docs/deployment/CI_WORKFLOWS.md` |
+| DX | Docker Compose (Postgres + Redis + API + web), seed script, 360 backend + 180 frontend tests; CI workflow in `docs/deployment/CI_WORKFLOWS.md` |
 
 | Model engineering (P6) | 15 leakage-tested features, forward-only time splits, numpy logistic training, 4-fold walk-forward |
 | Evaluation (P6) | Per-slice metrics with `is_out_of_sample`, majority-class baseline, edge over baseline, Brier, calibration slope and reliability bins |
@@ -79,12 +79,18 @@ The demo is a product walkthrough, **not** a security boundary and holds no real
 | Positions (P8) | Long-only book marked to the latest close; reconciled against `INVESTMENT` and `REALISED_PNL` over open *and* closed positions |
 | Execution UI (P8) | Equity, unrealised/realised P&L, order history with rejection reasons, and what the venue is not |
 
-### Explicitly **not** in Phase 8
+| Risk engine (P9) | 11 deterministic rules evaluated before any order: per-trade risk, daily loss, drawdown, positions, exposure, concentration, correlation, leverage, spread, order rate, kill switch |
+| Risk sizing (P9) | Per-trade risk measured against the stop, not the notional — an oversized order is **reduced** to the budget, with the original quantity kept in the audit log |
+| Circuit breaker (P9) | `OPEN` (metric-tripped, auto-clearable) vs `MANUAL` (human, staff-only clear); the distinction stops an auto-reset undoing an emergency stop |
+| Emergency stop (P9) | Staff-only, cancels pending orders, records exposure left open, and **does not liquidate** — closing positions is a separate policy decision |
+| Risk Centre UI (P9) | Limits with their meaning, live exposure/drawdown, per-decision rule traces, breaker controls, and what the controller is not |
 
-Real execution, any broker adapter, the independent risk controller (Phase 9), the
-autonomous loop, risk limits, stop-loss enforcement, short selling, leverage,
-parameter optimisation, streaming feeds, deep-learning families, and any
-probability→stance conversion.
+### Explicitly **not** in Phase 9
+
+The autonomous loop, any broker adapter, automatic liquidation, portfolio covariance
+modelling, stop-loss order management, short selling, leverage, parameter
+optimisation, streaming feeds, deep-learning families, and any probability→stance
+conversion.
 
 **No AI proposal in this platform is tradeable, and there is no order path to
 reach.** Every run stores `tradeable: false` with the reason, a test asserts it

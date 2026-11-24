@@ -57,6 +57,9 @@ PARTICIPATION_CAP = 0.15
 MAX_FILL_BITES = 4
 #: Bars older than this relative to the timeframe are not a price anyone could get.
 MAX_BAR_AGE_SECONDS = 120
+#: Stop distance assumed when a proposal states none. Matches the backtester default,
+#: so "risk per trade" is the same number on both sides.
+DEFAULT_STOP_PCT = 0.02
 
 
 @dataclass
@@ -108,6 +111,17 @@ def _latest_candle(db: Session, instrument: Instrument, timeframe: Timeframe):
         .order_by(MarketCandle.open_time.desc())
         .limit(1)
     )
+
+
+def _price(db: Session, symbol: str, timeframe: Timeframe = Timeframe.D1) -> float | None:
+    """Latest close for risk valuation. None means the risk engine will refuse."""
+    instrument = db.scalar(select(Instrument).where(Instrument.symbol == symbol.upper()))
+    if instrument is None:
+        return None
+    candle = _latest_candle(db, instrument, timeframe) or _latest_candle(
+        db, instrument, Timeframe.D1
+    )
+    return float(candle.close) if candle else None
 
 
 def validate_proposal(
@@ -330,7 +344,9 @@ def create_order(
         origin_ref=proposal.origin_ref,
         rationale=proposal.rationale,
         requested_by=actor_id,
-        expires_at=moment + timedelta(days=1) if proposal.time_in_force == TimeInForce.DAY else None,
+        expires_at=moment + timedelta(days=1)
+        if proposal.time_in_force == TimeInForce.DAY
+        else None,
     )
     db.add(order)
     db.flush()
@@ -362,6 +378,94 @@ def create_order(
         )
         db.flush()
         return order
+
+    # --- Independent risk gate (Phase 9) ------------------------------------
+    # Validation answered "is this a well-formed, affordable order?". The risk
+    # controller answers a different question: "should this account be taking this
+    # risk at all, right now?". It is a separate service on purpose, and it can
+    # reduce the quantity as well as refuse.
+    from app.services.risk import engine as risk_engine
+    from app.services.risk.breakers import breaker_state as _breaker_state
+
+    if (
+        _breaker_state(db, account)
+        != __import__("app.models.risk", fromlist=["BreakerState"]).BreakerState.CLOSED
+    ):
+        order.status = OrderStatus.REJECTED
+        order.reject_reason = (
+            "New risk is halted by the circuit breaker. An authorised user must clear it."
+        )
+        order.completed_at = moment
+        record_event(
+            db,
+            account_id=account.id,
+            event_type=ExecutionEventType.REJECTED,
+            order=order,
+            message=order.reject_reason,
+            detail={"stage": "risk", "reason": "breaker_open"},
+            actor_id=actor_id,
+            at=moment,
+        )
+        db.flush()
+        return order
+
+    risk_price = _price(db, order.instrument_symbol, proposal.timeframe)
+    risk = risk_engine.evaluate_proposal(
+        db,
+        account=account,
+        symbol=order.instrument_symbol,
+        side=proposal.side,
+        quantity=float(proposal.quantity),
+        price=risk_price,
+        stop_pct=proposal.stop_pct or DEFAULT_STOP_PCT,
+        actor_id=actor_id,
+        now=moment,
+    )
+    if risk.check is not None:
+        risk.check.order_id = order.id
+        db.flush()
+
+    if not risk.allowed:
+        order.status = OrderStatus.REJECTED
+        order.reject_reason = risk.reason
+        order.completed_at = moment
+        record_event(
+            db,
+            account_id=account.id,
+            event_type=ExecutionEventType.REJECTED,
+            order=order,
+            message=risk.reason,
+            detail={
+                "stage": "risk",
+                "decision": risk.decision.value,
+                "checks": [c.as_dict() for c in risk.checks],
+            },
+            actor_id=actor_id,
+            at=moment,
+        )
+        db.flush()
+        return order
+
+    if risk.approved_quantity < order.quantity - 1e-12:
+        original = order.quantity
+        order.quantity = float(risk.approved_quantity)
+        record_event(
+            db,
+            account_id=account.id,
+            event_type=ExecutionEventType.VALIDATED,
+            order=order,
+            message=risk.reason,
+            detail={
+                "stage": "risk",
+                "decision": risk.decision.value,
+                "original_quantity": original,
+                "approved_quantity": order.quantity,
+                "checks": [c.as_dict() for c in risk.checks],
+            },
+            actor_id=actor_id,
+            at=moment,
+        )
+        db.flush()
 
     _transition(order, OrderStatus.VALIDATED)
     record_event(

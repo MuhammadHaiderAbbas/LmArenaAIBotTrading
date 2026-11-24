@@ -8,12 +8,12 @@ import { Register } from "./pages/Register";
 import { Overview } from "./pages/Overview";
 import { Markets } from "./pages/Markets";
 import { Execution } from "./pages/Execution";
+import { Risk } from "./pages/Risk";
 import { AIDesk } from "./pages/AIDesk";
 import { Models } from "./pages/Models";
 import { Research } from "./pages/Research";
 import { Strategies } from "./pages/Strategies";
 import { Portfolio } from "./pages/Portfolio";
-import { RiskCentre } from "./pages/RiskCentre";
 import { Wallet } from "./pages/Wallet";
 import { History } from "./pages/History";
 import { Analytics } from "./pages/Analytics";
@@ -44,12 +44,12 @@ export function App() {
                 <Route path="/overview" element={<Overview />} />
                 <Route path="/markets" element={<Markets />} />
                 <Route path="/trading" element={<Execution />} />
+                <Route path="/risk" element={<Risk />} />
                 <Route path="/research" element={<Research />} />
                 <Route path="/ai" element={<AIDesk />} />
                 <Route path="/models" element={<Models />} />
                 <Route path="/strategies" element={<Strategies />} />
                 <Route path="/portfolio" element={<Portfolio />} />
-                <Route path="/risk" element={<RiskCentre />} />
                 <Route path="/wallet" element={<Wallet />} />
                 <Route path="/history" element={<History />} />
                 <Route path="/analytics" element={<Analytics />} />
